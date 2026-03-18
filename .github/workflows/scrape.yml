@@ -1,0 +1,31 @@
+name: Scrape Campsites
+
+on:
+  schedule:
+    - cron: "0 2 * * *"  # 每天 UTC 02:00 (台灣時間 10:00)
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          cd packages/scraper
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Run scrapers
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          cd packages/scraper
+          python main.py
