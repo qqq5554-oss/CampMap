@@ -1,3 +1,3 @@
-from .campsite import Campsite
+from .campsite import Campsite, CampsiteZone, Availability, ScrapeLog
 
-__all__ = ["Campsite"]
+__all__ = ["Campsite", "CampsiteZone", "Availability", "ScrapeLog"]
