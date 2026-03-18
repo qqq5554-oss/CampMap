@@ -2,19 +2,58 @@ name: Scrape Campsites
 
 on:
   schedule:
-    - cron: "0 2 * * *"  # 每天 UTC 02:00 (台灣時間 10:00)
+    # 台灣時間 06:00 = UTC 22:00 (前一天)
+    # 台灣時間 18:00 = UTC 10:00
+    - cron: "0 22 * * *"
+    - cron: "0 10 * * *"
   workflow_dispatch:
+    inputs:
+      platform:
+        description: "Platform to scrape"
+        required: false
+        default: "all"
+        type: choice
+        options:
+          - all
+          - easycamp
+          - camptrip
+          - icamping
+      mode:
+        description: "Scrape mode"
+        required: false
+        default: "availability-only"
+        type: choice
+        options:
+          - availability-only
+          - full
+      days:
+        description: "Days ahead to scrape availability"
+        required: false
+        default: "60"
+        type: string
+
+concurrency:
+  group: scraper
+  cancel-in-progress: false  # 不取消正在跑的，讓它跑完；新的排隊等
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.11"
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('packages/scraper/requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
@@ -28,4 +67,16 @@ jobs:
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: |
           cd packages/scraper
-          python main.py
+          python main.py \
+            --platform "${{ github.event.inputs.platform || 'all' }}" \
+            --mode "${{ github.event.inputs.mode || 'availability-only' }}" \
+            --days "${{ github.event.inputs.days || '60' }}"
+
+      - name: Upload scrape log artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrape-log-${{ github.run_id }}
+          path: packages/scraper/scrape_output.log
+          retention-days: 7
+          if-no-files-found: ignore
