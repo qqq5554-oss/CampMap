@@ -6,4 +6,5 @@ __pycache__/
 dist/
 .playwright/
 *.pyc
+*.tsbuildinfo
 .DS_Store
