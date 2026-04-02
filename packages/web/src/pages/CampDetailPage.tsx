@@ -38,7 +38,7 @@ export default function CampDetailPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-800">{camp.name}</h1>
             <p className="text-gray-500 flex items-center gap-1 mt-1">
-              <MapPin size={16} /> {camp.location || "未提供位置"}
+              <MapPin size={16} /> {camp.address || `${camp.city}${camp.district}` || "未提供位置"}
             </p>
           </div>
           <button onClick={() => toggleFavorite(camp.id)} className="p-2">
@@ -49,10 +49,10 @@ export default function CampDetailPage() {
           </button>
         </div>
 
-        {camp.price_min != null && (
+        {camp.min_price != null && (
           <p className="text-xl text-green-700 font-bold mt-4">
-            NT$ {camp.price_min.toLocaleString()}
-            {camp.price_max != null && ` ~ ${camp.price_max.toLocaleString()}`}
+            NT$ {camp.min_price.toLocaleString()}
+            {camp.max_price != null && ` ~ ${camp.max_price.toLocaleString()}`}
           </p>
         )}
 
@@ -71,7 +71,7 @@ export default function CampDetailPage() {
         )}
 
         <a
-          href={camp.url}
+          href={camp.source_url}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-6 inline-flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"

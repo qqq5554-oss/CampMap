@@ -23,7 +23,7 @@ export default function CampMap({ campsites }: Props) {
           <Popup>
             <strong>{camp.name}</strong>
             <br />
-            {camp.location}
+            {camp.address || `${camp.city}${camp.district}`}
           </Popup>
         </Marker>
       ))}
