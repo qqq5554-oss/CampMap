@@ -13,8 +13,12 @@ def get_supabase_client() -> Client:
     """取得 Supabase client（單例）。"""
     global _client
     if _client is None:
-        url = os.environ["SUPABASE_URL"]
-        key = os.environ["SUPABASE_KEY"]
+        url = os.environ.get("SUPABASE_URL")
+        key = os.environ.get("SUPABASE_KEY")
+        if not url or not key:
+            raise RuntimeError(
+                "Missing required environment variables: SUPABASE_URL and SUPABASE_KEY must be set"
+            )
         _client = create_client(url, key)
         logger.info("Supabase client initialized: %s", url)
     return _client
@@ -30,16 +34,23 @@ class SupabaseClient:
         """批次 upsert，依 on_conflict 欄位進行增量更新。"""
         if not records:
             return
-        # Supabase Python client 支援批次 upsert
-        self._client.table(table).upsert(
-            records, on_conflict=on_conflict
-        ).execute()
-        logger.debug("Upserted %d records into %s", len(records), table)
+        try:
+            self._client.table(table).upsert(
+                records, on_conflict=on_conflict
+            ).execute()
+            logger.debug("Upserted %d records into %s", len(records), table)
+        except Exception as e:
+            logger.error("Failed to upsert %d records into %s: %s", len(records), table, e)
+            raise
 
     def insert(self, table: str, record: dict):
         """插入單筆記錄。"""
-        self._client.table(table).insert(record).execute()
-        logger.debug("Inserted 1 record into %s", table)
+        try:
+            self._client.table(table).insert(record).execute()
+            logger.debug("Inserted 1 record into %s", table)
+        except Exception as e:
+            logger.error("Failed to insert record into %s: %s", table, e)
+            raise
 
     def query(self, table: str):
         """回傳 table query builder，供自訂查詢。"""
