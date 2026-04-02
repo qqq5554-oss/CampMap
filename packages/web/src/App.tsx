@@ -7,7 +7,7 @@ import FavoritesPage from "./pages/FavoritesPage";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/CampMap">
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
