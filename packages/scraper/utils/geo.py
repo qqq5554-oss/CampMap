@@ -1,5 +1,9 @@
+import urllib.parse
 import urllib.request
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def geocode(address: str) -> tuple[float, float] | None:
@@ -12,6 +16,6 @@ def geocode(address: str) -> tuple[float, float] | None:
             data = json.loads(resp.read())
             if data:
                 return float(data[0]["lat"]), float(data[0]["lon"])
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Geocode failed for %r: %s", address, e)
     return None

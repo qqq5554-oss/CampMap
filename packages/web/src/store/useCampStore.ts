@@ -6,6 +6,7 @@ interface CampState {
   campsites: Campsite[];
   favorites: Set<string>;
   loading: boolean;
+  error: string | null;
   keyword: string;
   source: string;
   setKeyword: (keyword: string) => void;
@@ -20,6 +21,7 @@ export const useCampStore = create<CampState>((set, get) => ({
     JSON.parse(localStorage.getItem("campmap_favs") ?? "[]"),
   ),
   loading: false,
+  error: null,
   keyword: "",
   source: "",
 
@@ -27,14 +29,27 @@ export const useCampStore = create<CampState>((set, get) => ({
   setSource: (source) => set({ source }),
 
   fetchCampsites: async () => {
-    set({ loading: true });
-    let query = supabase.from("campsites").select("*");
-    const { keyword, source } = get();
-    if (keyword) query = query.ilike("name", `%${keyword}%`);
-    if (source) query = query.eq("source", source);
+    set({ loading: true, error: null });
+    try {
+      let query = supabase.from("campsites").select("*");
+      const { keyword, source } = get();
+      if (keyword) query = query.ilike("name", `%${keyword}%`);
+      if (source) query = query.eq("source", source);
 
-    const { data } = await query.order("updated_at", { ascending: false });
-    set({ campsites: (data as Campsite[]) ?? [], loading: false });
+      const { data, error } = await query.order("updated_at", {
+        ascending: false,
+      });
+      if (error) {
+        set({ error: error.message, loading: false });
+        return;
+      }
+      set({ campsites: (data as Campsite[]) ?? [], loading: false });
+    } catch (e) {
+      set({
+        error: e instanceof Error ? e.message : "Failed to fetch campsites",
+        loading: false,
+      });
+    }
   },
 
   toggleFavorite: (id) => {
