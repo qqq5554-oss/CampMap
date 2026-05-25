@@ -18,7 +18,7 @@ body {
 
 /* ── Header ── */
 .header {
-  background: linear-gradient(135deg, #1a237e, #283593);
+  background: linear-gradient(135deg, #8C1515, #6B0F0F);
   color: #fff;
   display: flex;
   align-items: center;
@@ -85,7 +85,7 @@ body {
 
 /* ── Tool nav ── */
 .tool-nav-section {
-  background: #1a237e;
+  background: #8C1515;
   padding: calc(6px * var(--s)) calc(10px * var(--s));
   margin: calc(-10px * var(--s)) calc(-12px * var(--s)) calc(10px * var(--s));
   display: flex;
@@ -135,7 +135,7 @@ body {
   font-family: inherit;
   transition: all 0.15s;
 }
-.tab-btn.active { background: #fff; color: #1a237e; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+.tab-btn.active { background: #fff; color: #8C1515; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
 
 /* ── Form elements ── */
 .section-label {
@@ -169,7 +169,7 @@ body {
   outline: none;
   transition: border-color 0.15s;
 }
-.fg input:focus, .fg select:focus { border-color: #1a237e; background: #fff; }
+.fg input:focus, .fg select:focus { border-color: #8C1515; background: #fff; }
 .row2 { display: flex; gap: calc(6px * var(--s)); }
 .row2 .fg { flex: 1; }
 
@@ -199,13 +199,13 @@ body {
   color: #222;
   transition: border-color 0.15s;
 }
-.param-row select:focus, .param-row input:focus { border-color: #1a237e; background: #fff; }
+.param-row select:focus, .param-row input:focus { border-color: #8C1515; background: #fff; }
 
 /* Buttons */
 .btn-primary {
   width: 100%;
   padding: calc(8px * var(--s));
-  background: #1a237e;
+  background: #8C1515;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -216,13 +216,13 @@ body {
   margin-top: calc(4px * var(--s));
   transition: background 0.15s;
 }
-.btn-primary:hover { background: #283593; }
+.btn-primary:hover { background: #6B0F0F; }
 .btn-outline {
   width: 100%;
   padding: calc(7px * var(--s));
   background: #fff;
-  color: #1a237e;
-  border: 1.5px solid #1a237e;
+  color: #8C1515;
+  border: 1.5px solid #8C1515;
   border-radius: 6px;
   font-size: calc(12px * var(--s));
   font-weight: 600;
@@ -257,7 +257,7 @@ body {
 .result-value {
   font-size: calc(14px * var(--s));
   font-weight: 700;
-  color: #1a237e;
+  color: #8C1515;
   line-height: 1.2;
 }
 .result-unit {
@@ -270,11 +270,11 @@ body {
 .mix-label {
   font-size: calc(11px * var(--s));
   font-weight: 700;
-  color: #1a237e;
+  color: #8C1515;
   margin-top: calc(10px * var(--s));
   margin-bottom: calc(4px * var(--s));
   padding-left: calc(2px * var(--s));
-  border-left: 3px solid #1a237e;
+  border-left: 3px solid #8C1515;
 }
 .mix-label.b { border-color: #e53935; color: #e53935; }
 .mix-label.m { border-color: #2e7d32; color: #2e7d32; }
@@ -283,7 +283,7 @@ body {
 .slider-row { display: flex; align-items: center; gap: calc(8px * var(--s)); margin-bottom: calc(6px * var(--s)); }
 .slider-row input[type=range] {
   flex: 1;
-  accent-color: #1a237e;
+  accent-color: #8C1515;
   height: 4px;
   cursor: pointer;
 }
@@ -301,7 +301,7 @@ body {
   background: #fafafa;
   outline: none;
 }
-.mix-ratio-inputs input:focus { border-color: #1a237e; background: #fff; }
+.mix-ratio-inputs input:focus { border-color: #8C1515; background: #fff; }
 
 /* ── Canvas area ── */
 .canvas-area {
@@ -342,15 +342,20 @@ body {
 
 /* ── Footer ── */
 .footer {
-  background: #f5f5f5;
-  border-top: 1px solid #ddd;
+  background: #f9f5f5;
+  border-top: 2px solid #ddc8c8;
   font-size: 12px;
   color: #666;
-  padding: 6px 16px;
+  padding: 8px 16px;
   text-align: center;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
 }
-.footer a { color: #1a237e; }
+.footer a { color: #8C1515; }
 
 /* ── Tab panels ── */
 .tab-panel { display: none; }
@@ -616,7 +621,15 @@ body {
 
 <!-- Footer -->
 <div class="footer">
-  聯絡人：韓先生 | <a href="mailto:S001@focushvac.com.tw">S001@focushvac.com.tw</a>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 52" height="32" style="vertical-align:middle;margin-right:10px">
+    <!-- Stylized E swooshes -->
+    <path d="M8 8 Q38 4 44 14 Q50 24 14 26 Q40 26 44 36 Q48 46 10 44" fill="none" stroke="#8C1515" stroke-width="7" stroke-linecap="round"/>
+    <path d="M8 20 Q28 18 34 23" fill="none" stroke="#8C1515" stroke-width="5" stroke-linecap="round"/>
+    <!-- Envirtrol System text -->
+    <text x="56" y="22" font-family="Arial,sans-serif" font-weight="700" font-size="16" fill="#8C1515">Envirtrol</text>
+    <text x="56" y="40" font-family="Arial,sans-serif" font-weight="400" font-size="14" fill="#8C1515">System</text>
+  </svg>
+  <span>聯絡人：韓先生 | <a href="mailto:S001@focushvac.com.tw">S001@focushvac.com.tw</a></span>
 </div>
 
 <script>
@@ -1060,7 +1073,7 @@ function drawChartPoints() {
 }
 
 function drawMixPoints() {
-  if (mixPoints.a) { drawPoint(mixPoints.a.tdb, mixPoints.a.w / 1000, '#1a237e', 'A'); }
+  if (mixPoints.a) { drawPoint(mixPoints.a.tdb, mixPoints.a.w / 1000, '#8C1515', 'A'); }
   if (mixPoints.b) { drawPoint(mixPoints.b.tdb, mixPoints.b.w / 1000, '#e53935', 'B'); }
   if (mixPoints.m) {
     drawPoint(mixPoints.m.tdb, mixPoints.m.w / 1000, '#2e7d32', 'M');

@@ -11,20 +11,20 @@
 html { font-size: 16px; }
 body {
   font-family: -apple-system, "PingFang TC", "Heiti TC", sans-serif;
-  background: #f0f2f0;
-  color: #1a2a1a;
+  background: #f5f0f0;
+  color: #1a0a0a;
   min-height: 100vh;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* ── Tool Nav ── */
-.tool-nav { background:#0f3a1b; padding:6px 16px; display:flex; gap:16px; }
+.tool-nav { background:#6B0F0F; padding:6px 16px; display:flex; gap:16px; }
 .tool-nav a { color:rgba(255,255,255,0.7); text-decoration:none; font-size:13px; padding:4px 8px; border-radius:4px; }
 .tool-nav a.active { color:#fff; background:rgba(255,255,255,0.15); font-weight:600; }
 
 /* ── Top bar ── */
 .topbar {
-  background: #1a5c2e;
+  background: #8C1515;
   color: #fff;
   padding: 14px 16px;
   padding-top: calc(14px + env(safe-area-inset-top, 0px));
@@ -39,7 +39,7 @@ body {
 .topbar-flex { flex: 1; min-width: 0; }
 .topbar-title { font-size: 16px; font-weight: 700; }
 .topbar-sub { font-size: 11px; opacity: .75; margin-top: 2px; letter-spacing: .4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.live-dot { width: 8px; height: 8px; border-radius: 50%; background: #5fffaa; flex-shrink: 0; animation: pulse 2s infinite; }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: #ffaaaa; flex-shrink: 0; animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
 /* ── Cards ── */
@@ -47,19 +47,19 @@ body {
   background: #fff;
   margin: 12px;
   border-radius: 18px;
-  border: 1px solid #d8e4d8;
+  border: 1px solid #e8cccc;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(26,92,46,.07);
+  box-shadow: 0 1px 4px rgba(140,21,21,.07);
 }
 .sec-head {
-  background: rgba(26,92,46,.06);
-  border-bottom: 1px solid #d8e4d8;
+  background: rgba(140,21,21,.06);
+  border-bottom: 1px solid #e8cccc;
   padding: 11px 16px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: #1a5c2e;
+  color: #8C1515;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -71,10 +71,10 @@ body {
 .tab {
   flex: 1;
   padding: 10px 4px 9px;
-  border: 2px solid #d8e4d8;
+  border: 2px solid #e8cccc;
   border-radius: 13px;
-  background: #f5f7f5;
-  color: #7a9a7a;
+  background: #fdf8f8;
+  color: #9a7a7a;
   font-size: 12px;
   font-weight: 600;
   text-align: center;
@@ -88,25 +88,25 @@ body {
 .tab-name { display: block; font-size: 12px; }
 .tab-sub  { display: block; font-size: 10px; opacity: .7; margin-top: 1px; }
 .tab.on {
-  border-color: #1a5c2e;
-  background: #eaf4ed;
-  color: #1a5c2e;
+  border-color: #8C1515;
+  background: #fdf0f0;
+  color: #8C1515;
 }
 
 /* ── Method info badge (auto-computed points) ── */
 .auto-info {
-  background: #eaf4ed;
-  border: 1px solid rgba(26,92,46,.22);
+  background: #fdf0f0;
+  border: 1px solid rgba(140,21,21,.22);
   border-radius: 11px;
   padding: 10px 14px;
   font-size: 12px;
-  color: #1a4020;
+  color: #4a1515;
   margin-bottom: 14px;
   line-height: 1.7;
   display: none;
 }
 .auto-info.show { display: block; }
-.auto-info b { color: #1a5c2e; font-weight: 700; }
+.auto-info b { color: #8C1515; font-weight: 700; }
 
 /* ── Form fields ── */
 .row2 { display: flex; gap: 10px; }
@@ -116,7 +116,7 @@ body {
   display: block;
   font-size: 11px;
   font-weight: 700;
-  color: #7a9a7a;
+  color: #9a7a7a;
   letter-spacing: 1.2px;
   text-transform: uppercase;
   margin-bottom: 7px;
@@ -125,27 +125,27 @@ body {
 .fg input[type="text"],
 .fg select {
   width: 100%;
-  background: #f5f7f5;
-  border: 2px solid #d8e4d8;
+  background: #fdf8f8;
+  border: 2px solid #e8cccc;
   border-radius: 11px;
   padding: 13px 14px;
   font-size: 20px;
   font-weight: 600;
-  color: #1a2a1a;
+  color: #1a0a0a;
   font-family: inherit;
   -webkit-appearance: none;
   outline: none;
   transition: border-color .15s;
 }
 .fg input[type="text"] { font-size: 15px; font-weight: 400; }
-.fg input:focus, .fg select:focus { border-color: #1a5c2e; background: #fff; }
-.fg .hint { font-size: 11px; color: #7a9a7a; margin-top: 5px; }
+.fg input:focus, .fg select:focus { border-color: #8C1515; background: #fff; }
+.fg .hint { font-size: 11px; color: #9a7a7a; margin-top: 5px; }
 
 /* ── Generate button ── */
 .gen-btn {
   width: 100%;
   padding: 17px;
-  background: #1a5c2e;
+  background: #8C1515;
   color: #fff;
   border: none;
   border-radius: 13px;
@@ -160,7 +160,7 @@ body {
   gap: 8px;
   transition: background .15s;
 }
-.gen-btn:active { background: #0f3a1b; }
+.gen-btn:active { background: #6B0F0F; }
 
 /* ── Pills ── */
 .pills {
@@ -168,25 +168,25 @@ body {
   gap: 7px;
   flex-wrap: wrap;
   padding: 10px 14px;
-  border-bottom: 1px solid #eef4ee;
+  border-bottom: 1px solid #f5e8e8;
 }
 .pill {
-  background: #eaf4ed;
-  border: 1px solid rgba(26,92,46,.2);
+  background: #fdf0f0;
+  border: 1px solid rgba(140,21,21,.2);
   border-radius: 20px;
   padding: 4px 11px;
   font-size: 12px;
-  color: #1a2a1a;
+  color: #1a0a0a;
 }
-.pill b { color: #1a5c2e; font-weight: 700; }
+.pill b { color: #8C1515; font-weight: 700; }
 
 .tap-hint {
-  background: #eaf4ed;
+  background: #fdf0f0;
   padding: 10px 16px;
   font-size: 13px;
   font-weight: 600;
-  color: #1a5c2e;
-  border-bottom: 1px solid #d8e4d8;
+  color: #8C1515;
+  border-bottom: 1px solid #e8cccc;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -197,44 +197,44 @@ body {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   padding: 14px;
-  background: #fafcfa;
+  background: #fdf8f8;
 }
 .svg-scroll svg { display: block; }
 
 /* ── Progress ── */
 .prog-body { padding: 14px 16px; }
 .prog-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.prog-label { font-size: 14px; font-weight: 700; color: #1a5c2e; }
-.prog-count { font-size: 14px; color: #7a9a7a; font-weight: 600; }
+.prog-label { font-size: 14px; font-weight: 700; color: #8C1515; }
+.prog-count { font-size: 14px; color: #9a7a7a; font-weight: 600; }
 .prog-track { height: 7px; background: #e0e8e0; border-radius: 4px; overflow: hidden; }
-.prog-fill  { height: 100%; background: linear-gradient(90deg,#1a5c2e,#2d8a4e); border-radius: 4px; transition: width .35s ease; }
+.prog-fill  { height: 100%; background: linear-gradient(90deg,#8C1515,#A83030); border-radius: 4px; transition: width .35s ease; }
 
 /* ── Results grid ── */
-.res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #eef4ee; }
+.res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #f5e8e8; }
 .rb { background: #fff; padding: 15px 14px; }
-.rb.span2 { grid-column: 1/-1; background: #eaf4ed; }
-.rl { font-size: 10px; font-weight: 700; color: #7a9a7a; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 7px; }
-.rv { font-size: 29px; font-weight: 700; color: #1a2a1a; line-height: 1; }
-.rb.span2 .rv { font-size: 34px; color: #1a5c2e; }
-.ru { font-size: 12px; color: #7a9a7a; margin-top: 5px; }
+.rb.span2 { grid-column: 1/-1; background: #fdf0f0; }
+.rl { font-size: 10px; font-weight: 700; color: #9a7a7a; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 7px; }
+.rv { font-size: 29px; font-weight: 700; color: #1a0a0a; line-height: 1; }
+.rb.span2 .rv { font-size: 34px; color: #8C1515; }
+.ru { font-size: 12px; color: #9a7a7a; margin-top: 5px; }
 
 /* ── ASHRAE validation row ── */
 .validation-row {
   padding: 12px 16px;
-  border-top: 1px solid #eef4ee;
+  border-top: 1px solid #f5e8e8;
   font-size: 12px;
   line-height: 1.7;
-  color: #4a6a4a;
+  color: #6a4a4a;
 }
 .v-ok   { color: #1a7a3a; font-weight: 700; }
 .v-warn { color: #c84010; font-weight: 700; }
 
 /* ── Summary table ── */
 .sum-wrap { padding: 14px 16px; }
-.sum-label { font-size: 11px; font-weight: 700; color: #1a5c2e; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
+.sum-label { font-size: 11px; font-weight: 700; color: #8C1515; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
 .sum-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .sum-table th {
-  background: #1a5c2e;
+  background: #8C1515;
   color: #fff;
   padding: 9px 10px;
   text-align: left;
@@ -243,15 +243,15 @@ body {
   text-transform: uppercase;
   font-weight: 700;
 }
-.sum-table td { padding: 8px 10px; border-bottom: 1px solid #eef4ee; }
-.sum-table tr:nth-child(even) td { background: #f8fbf8; }
-.c-acc  { color: #1a5c2e; font-weight: 700; }
+.sum-table td { padding: 8px 10px; border-bottom: 1px solid #f5e8e8; }
+.sum-table tr:nth-child(even) td { background: #fdf7f7; }
+.c-acc  { color: #8C1515; font-weight: 700; }
 .c-warn { color: #e8521a; font-weight: 700; }
-.c-ok   { color: #2d8a4e; }
+.c-ok   { color: #A83030; }
 .c-dim  { color: #b0c8b0; }
 
 /* ── Action buttons ── */
-.action-row { display: flex; gap: 10px; padding: 14px 16px; border-top: 1px solid #eef4ee; flex-wrap: wrap; }
+.action-row { display: flex; gap: 10px; padding: 14px 16px; border-top: 1px solid #f5e8e8; flex-wrap: wrap; }
 .btn {
   flex: 1;
   min-width: 110px;
@@ -268,10 +268,10 @@ body {
   gap: 7px;
   transition: all .15s;
 }
-.btn-primary { background: #1a5c2e; color: #fff; }
-.btn-primary:active { background: #0f3a1b; }
-.btn-outline { background: #fff; color: #1a5c2e; border: 2px solid #1a5c2e; }
-.btn-outline:active { background: #eaf4ed; }
+.btn-primary { background: #8C1515; color: #fff; }
+.btn-primary:active { background: #6B0F0F; }
+.btn-outline { background: #fff; color: #8C1515; border: 2px solid #8C1515; }
+.btn-outline:active { background: #fdf0f0; }
 .spacer { height: 48px; }
 
 /* ── Bottom sheet ── */
@@ -284,28 +284,28 @@ body {
   padding: 0 20px calc(24px + env(safe-area-inset-bottom, 0px));
   box-shadow: 0 -8px 40px rgba(0,0,0,.18);
 }
-.sheet-bar { width: 44px; height: 5px; background: #d8e4d8; border-radius: 3px; margin: 14px auto 18px; }
-.sheet-title { font-size: 19px; font-weight: 700; color: #1a5c2e; margin-bottom: 4px; }
-.sheet-desc { font-size: 13px; color: #7a9a7a; margin-bottom: 20px; line-height: 1.5; }
-.sheet-lbl { font-size: 11px; font-weight: 700; color: #7a9a7a; letter-spacing: 1.2px; text-transform: uppercase; display: block; margin-bottom: 9px; }
+.sheet-bar { width: 44px; height: 5px; background: #e8cccc; border-radius: 3px; margin: 14px auto 18px; }
+.sheet-title { font-size: 19px; font-weight: 700; color: #8C1515; margin-bottom: 4px; }
+.sheet-desc { font-size: 13px; color: #9a7a7a; margin-bottom: 20px; line-height: 1.5; }
+.sheet-lbl { font-size: 11px; font-weight: 700; color: #9a7a7a; letter-spacing: 1.2px; text-transform: uppercase; display: block; margin-bottom: 9px; }
 .inp-row { position: relative; margin-bottom: 18px; }
 .big-input {
   width: 100%;
-  background: #f5f7f5;
-  border: 2.5px solid #d8e4d8;
+  background: #fdf8f8;
+  border: 2.5px solid #e8cccc;
   border-radius: 14px;
   padding: 20px 74px 20px 20px;
   font-size: 40px;
   font-weight: 700;
-  color: #1a2a1a;
+  color: #1a0a0a;
   text-align: right;
   font-family: inherit;
   -webkit-appearance: none;
   outline: none;
   transition: border-color .15s;
 }
-.big-input:focus { border-color: #1a5c2e; background: #fff; }
-.inp-unit { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 17px; color: #7a9a7a; font-weight: 600; pointer-events: none; }
+.big-input:focus { border-color: #8C1515; background: #fff; }
+.inp-unit { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 17px; color: #9a7a7a; font-weight: 600; pointer-events: none; }
 .sheet-btns { display: flex; gap: 10px; }
 .sheet-btns button {
   flex: 1;
@@ -318,10 +318,10 @@ body {
   cursor: pointer;
   transition: all .15s;
 }
-.sb-ok  { background: #1a5c2e; color: #fff; flex: 2; }
-.sb-ok:active { background: #0f3a1b; }
+.sb-ok  { background: #8C1515; color: #fff; flex: 2; }
+.sb-ok:active { background: #6B0F0F; }
 .sb-clr { background: #fff3f0; color: #e8521a; border: 2px solid #fdddd8; }
-.sb-can { background: #f5f7f5; color: #7a9a7a; border: 2px solid #d8e4d8; }
+.sb-can { background: #fdf8f8; color: #9a7a7a; border: 2px solid #e8cccc; }
 
 /* ── Print ── */
 @media print {
@@ -337,7 +337,7 @@ body {
 }
 #pdfBanner {
   display: none;
-  background: #1a5c2e;
+  background: #8C1515;
   color: #fff;
   padding: 18px 20px;
   -webkit-print-color-adjust: exact;
@@ -485,7 +485,7 @@ body {
 <!-- Results -->
 <div class="section" id="resSection" style="">
   <div class="sec-head">📊 計算結果</div>
-  <div id="noteDisp" style="padding:10px 16px 0;font-size:12px;color:#7a9a7a"></div>
+  <div id="noteDisp" style="padding:10px 16px 0;font-size:12px;color:#9a7a7a"></div>
   <div class="res-grid">
     <div class="rb span2">
       <div class="rl">平均風速</div>
@@ -554,6 +554,17 @@ body {
 </div>
 
 <div class="spacer"></div>
+
+<!-- Footer -->
+<div style="background:#f9f5f5;border-top:2px solid #e8cccc;padding:10px 16px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;font-size:12px;color:#666">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 52" height="30" style="vertical-align:middle">
+    <path d="M8 8 Q38 4 44 14 Q50 24 14 26 Q40 26 44 36 Q48 46 10 44" fill="none" stroke="#8C1515" stroke-width="7" stroke-linecap="round"/>
+    <path d="M8 20 Q28 18 34 23" fill="none" stroke="#8C1515" stroke-width="5" stroke-linecap="round"/>
+    <text x="56" y="22" font-family="Arial,sans-serif" font-weight="700" font-size="16" fill="#8C1515">Envirtrol</text>
+    <text x="56" y="40" font-family="Arial,sans-serif" font-weight="400" font-size="14" fill="#8C1515">System</text>
+  </svg>
+  <span>聯絡人：韓先生 | <a href="mailto:S001@focushvac.com.tw" style="color:#8C1515">S001@focushvac.com.tw</a></span>
+</div>
 
 <!-- Bottom sheet -->
 <div class="overlay" id="overlay">
@@ -826,7 +837,7 @@ function buildRectSVG() {
   var PR = Math.min(22, Math.max(9, Math.floor(Math.min(drawW/nx, drawH/ny) * 0.34)));
 
   var s = '<svg xmlns="http://www.w3.org/2000/svg" width="'+SW+'" height="'+SH+'">';
-  s += '<rect width="'+SW+'" height="'+SH+'" fill="#fafcfa"/>';
+  s += '<rect width="'+SW+'" height="'+SH+'" fill="#fdf8f8"/>';
   s += '<rect x="'+ox+'" y="'+oy+'" width="'+drawW+'" height="'+drawH+'" fill="#fff"/>';
 
   function cellBounds(fracs) {
@@ -845,20 +856,20 @@ function buildRectSVG() {
     for (var c = 0; c < nx; c++) {
       var x1 = ox + xBnds[c][0]*drawW, x2 = ox + xBnds[c][1]*drawW;
       var y1 = oy + yBnds[r][0]*drawH, y2 = oy + yBnds[r][1]*drawH;
-      s += '<rect x="'+x1+'" y="'+y1+'" width="'+(x2-x1)+'" height="'+(y2-y1)+'" fill="'+((r+c)%2===0?'rgba(26,92,46,0.05)':'rgba(26,92,46,0.012)')+'"/>';
+      s += '<rect x="'+x1+'" y="'+y1+'" width="'+(x2-x1)+'" height="'+(y2-y1)+'" fill="'+((r+c)%2===0?'rgba(140,21,21,0.05)':'rgba(140,21,21,0.012)')+'"/>';
     }
   }
 
   for (var i = 0; i < xFracs.length; i++) {
     var gx = ox + xFracs[i]*drawW;
-    s += '<line x1="'+gx+'" y1="'+oy+'" x2="'+gx+'" y2="'+(oy+drawH)+'" stroke="rgba(26,92,46,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>';
+    s += '<line x1="'+gx+'" y1="'+oy+'" x2="'+gx+'" y2="'+(oy+drawH)+'" stroke="rgba(140,21,21,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>';
   }
   for (var i = 0; i < yFracs.length; i++) {
     var gy = oy + yFracs[i]*drawH;
-    s += '<line x1="'+ox+'" y1="'+gy+'" x2="'+(ox+drawW)+'" y2="'+gy+'" stroke="rgba(26,92,46,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>';
+    s += '<line x1="'+ox+'" y1="'+gy+'" x2="'+(ox+drawW)+'" y2="'+gy+'" stroke="rgba(140,21,21,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>';
   }
 
-  s += '<rect x="'+ox+'" y="'+oy+'" width="'+drawW+'" height="'+drawH+'" fill="none" stroke="#1a5c2e" stroke-width="2.5"/>';
+  s += '<rect x="'+ox+'" y="'+oy+'" width="'+drawW+'" height="'+drawH+'" fill="none" stroke="#8C1515" stroke-width="2.5"/>';
   s += '<text x="'+(ox+drawW/2)+'" y="'+(oy-36)+'" text-anchor="middle" font-size="13" fill="#222" font-weight="bold" font-family="sans-serif">X = '+W+' mm</text>';
   s += '<line x1="'+ox+'" y1="'+(oy-28)+'" x2="'+(ox+drawW)+'" y2="'+(oy-28)+'" stroke="#ccc" stroke-width="1"/>';
   for (var i = 0; i < xFracs.length; i++) {
@@ -881,11 +892,11 @@ function buildRectSVG() {
     var has = p.val !== null;
     s += '<g id="pt'+p.id+'" style="cursor:pointer">';
     s += '<circle cx="'+px+'" cy="'+py+'" r="'+(PR+4)+'" fill="rgba(0,0,0,0.05)"/>';
-    s += '<circle cx="'+px+'" cy="'+py+'" r="'+PR+'" fill="'+(has?'#eaf4ed':'#fff')+'" stroke="'+(has?'#1a5c2e':'#c8d8c8')+'" stroke-width="'+(has?2.5:1.8)+'"/>';
-    s += '<text x="'+px+'" y="'+(py-PR*0.24)+'" text-anchor="middle" font-size="9" fill="'+(has?'#2d8a4e':'#c0c8c0')+'" font-family="sans-serif">'+p.label+'</text>';
+    s += '<circle cx="'+px+'" cy="'+py+'" r="'+PR+'" fill="'+(has?'#fdf0f0':'#fff')+'" stroke="'+(has?'#8C1515':'#c8d8c8')+'" stroke-width="'+(has?2.5:1.8)+'"/>';
+    s += '<text x="'+px+'" y="'+(py-PR*0.24)+'" text-anchor="middle" font-size="9" fill="'+(has?'#A83030':'#c0c8c0')+'" font-family="sans-serif">'+p.label+'</text>';
     if (has) {
-      s += '<text x="'+px+'" y="'+(py+PR*0.34)+'" text-anchor="middle" font-size="12" fill="#1a5c2e" font-weight="bold" font-family="sans-serif">'+p.val.toFixed(2)+'</text>';
-      s += '<text x="'+px+'" y="'+(py+PR*0.74)+'" text-anchor="middle" font-size="8" fill="#7a9a7a" font-family="sans-serif">'+getUL()+'</text>';
+      s += '<text x="'+px+'" y="'+(py+PR*0.34)+'" text-anchor="middle" font-size="12" fill="#8C1515" font-weight="bold" font-family="sans-serif">'+p.val.toFixed(2)+'</text>';
+      s += '<text x="'+px+'" y="'+(py+PR*0.74)+'" text-anchor="middle" font-size="8" fill="#9a7a7a" font-family="sans-serif">'+getUL()+'</text>';
     } else {
       s += '<text x="'+px+'" y="'+(py+PR*0.42)+'" text-anchor="middle" font-size="14" fill="#ddd" font-family="sans-serif">—</text>';
     }
@@ -908,16 +919,16 @@ function buildCircSVG() {
   var PR = Math.min(16, Math.max(7, Math.floor(RADIUS * 0.09)));
 
   var s = '<svg xmlns="http://www.w3.org/2000/svg" width="'+SW+'" height="'+SH+'">';
-  s += '<rect width="'+SW+'" height="'+SH+'" fill="#fafcfa"/>';
-  s += '<circle cx="'+cx+'" cy="'+cy+'" r="'+RADIUS+'" fill="rgba(26,92,46,0.04)"/>';
-  s += '<line x1="'+(cx-RADIUS-10)+'" y1="'+cy+'" x2="'+(cx+RADIUS+10)+'" y2="'+cy+'" stroke="rgba(26,92,46,0.2)" stroke-width="1.5"/>';
-  s += '<line x1="'+cx+'" y1="'+(cy-RADIUS-10)+'" x2="'+cx+'" y2="'+(cy+RADIUS+10)+'" stroke="rgba(26,92,46,0.2)" stroke-width="1.5"/>';
-  s += '<circle cx="'+cx+'" cy="'+cy+'" r="'+RADIUS+'" fill="none" stroke="#1a5c2e" stroke-width="2.5"/>';
+  s += '<rect width="'+SW+'" height="'+SH+'" fill="#fdf8f8"/>';
+  s += '<circle cx="'+cx+'" cy="'+cy+'" r="'+RADIUS+'" fill="rgba(140,21,21,0.04)"/>';
+  s += '<line x1="'+(cx-RADIUS-10)+'" y1="'+cy+'" x2="'+(cx+RADIUS+10)+'" y2="'+cy+'" stroke="rgba(140,21,21,0.2)" stroke-width="1.5"/>';
+  s += '<line x1="'+cx+'" y1="'+(cy-RADIUS-10)+'" x2="'+cx+'" y2="'+(cy+RADIUS+10)+'" stroke="rgba(140,21,21,0.2)" stroke-width="1.5"/>';
+  s += '<circle cx="'+cx+'" cy="'+cy+'" r="'+RADIUS+'" fill="none" stroke="#8C1515" stroke-width="2.5"/>';
   s += '<text x="'+cx+'" y="'+(cy+RADIUS+22)+'" text-anchor="middle" font-size="13" fill="#222" font-weight="bold" font-family="sans-serif">D = '+D+' mm</text>';
   var axLbl = [{x:cx-RADIUS-13,y:cy+4,a:'end',t:'H←'},{x:cx+RADIUS+13,y:cy+4,a:'start',t:'→H'},
                {x:cx,y:cy-RADIUS-13,a:'middle',t:'↑V'},{x:cx,y:cy+RADIUS+13,a:'middle',t:'V↓'}];
   for (var i=0;i<axLbl.length;i++) {
-    s += '<text x="'+axLbl[i].x+'" y="'+axLbl[i].y+'" text-anchor="'+axLbl[i].a+'" font-size="11" fill="#7a9a7a" font-weight="bold" font-family="sans-serif">'+axLbl[i].t+'</text>';
+    s += '<text x="'+axLbl[i].x+'" y="'+axLbl[i].y+'" text-anchor="'+axLbl[i].a+'" font-size="11" fill="#9a7a7a" font-weight="bold" font-family="sans-serif">'+axLbl[i].t+'</text>';
   }
 
   for (var i = 0; i < pts.length; i++) {
@@ -927,15 +938,15 @@ function buildCircSVG() {
     var has = p.val !== null;
     s += '<g id="pt'+p.id+'" style="cursor:pointer">';
     s += '<circle cx="'+px+'" cy="'+py+'" r="'+(PR+4)+'" fill="rgba(0,0,0,0.05)"/>';
-    s += '<circle cx="'+px+'" cy="'+py+'" r="'+PR+'" fill="'+(has?'#eaf4ed':'#fff')+'" stroke="'+(has?'#1a5c2e':'#c8d8c8')+'" stroke-width="'+(has?2.5:1.8)+'"/>';
+    s += '<circle cx="'+px+'" cy="'+py+'" r="'+PR+'" fill="'+(has?'#fdf0f0':'#fff')+'" stroke="'+(has?'#8C1515':'#c8d8c8')+'" stroke-width="'+(has?2.5:1.8)+'"/>';
     var isH = (p.ymm === D/2);
     var lx = px, ly = py - PR - 5;
     if (!isH) { lx = px + PR + 5; ly = py + 4; }
     var la = isH ? 'middle' : 'start';
-    s += '<text x="'+lx+'" y="'+ly+'" text-anchor="'+la+'" font-size="9" fill="'+(has?'#1a5c2e':'#aaa')+'" font-weight="'+(has?'bold':'normal')+'" font-family="sans-serif">'+p.label+'</text>';
+    s += '<text x="'+lx+'" y="'+ly+'" text-anchor="'+la+'" font-size="9" fill="'+(has?'#8C1515':'#aaa')+'" font-weight="'+(has?'bold':'normal')+'" font-family="sans-serif">'+p.label+'</text>';
     if (has) {
-      s += '<text x="'+px+'" y="'+(py+PR*0.28)+'" text-anchor="middle" font-size="11" fill="#1a5c2e" font-weight="bold" font-family="sans-serif">'+p.val.toFixed(2)+'</text>';
-      s += '<text x="'+px+'" y="'+(py+PR*0.72)+'" text-anchor="middle" font-size="7" fill="#7a9a7a" font-family="sans-serif">'+getUL()+'</text>';
+      s += '<text x="'+px+'" y="'+(py+PR*0.28)+'" text-anchor="middle" font-size="11" fill="#8C1515" font-weight="bold" font-family="sans-serif">'+p.val.toFixed(2)+'</text>';
+      s += '<text x="'+px+'" y="'+(py+PR*0.72)+'" text-anchor="middle" font-size="7" fill="#9a7a7a" font-family="sans-serif">'+getUL()+'</text>';
     } else {
       s += '<text x="'+px+'" y="'+(py+PR*0.44)+'" text-anchor="middle" font-size="13" fill="#ddd" font-family="sans-serif">—</text>';
     }
@@ -1037,7 +1048,7 @@ function updateResults() {
   else checks.push('<span class="v-ok">✓ 所有量測點完成</span>');
 
   var vr = document.getElementById('validRow');
-  vr.innerHTML = '<b style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#1a5c2e">ASHRAE 111 驗核</b><br>' + checks.join('<br>');
+  vr.innerHTML = '<b style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#8C1515">ASHRAE 111 驗核</b><br>' + checks.join('<br>');
   vr.style.display = '';
 
   var rows = '';
@@ -1052,7 +1063,7 @@ function updateResults() {
       var devStr = (dev>=0?'+':'')+dev.toFixed(1)+'%';
       var devCls = Math.abs(dev)>20?'c-warn':Math.abs(dev)>10?'':'c-ok';
       var note2 = found.ms===mx && n===1 ? '' : found.ms===mx ? '▲ 最大' : found.ms===mn ? '▼ 最小' : '';
-      rows += '<tr><td>'+p.id+'</td><td class="c-acc">'+p.label+'</td><td style="font-size:10px;color:#7a9a7a">'+p.desc+'</td><td style="font-weight:700">'+d(found.ms)+' '+ul+'</td><td class="'+devCls+'">'+devStr+'</td><td style="font-size:10px;color:#7a9a7a">'+note2+'</td></tr>';
+      rows += '<tr><td>'+p.id+'</td><td class="c-acc">'+p.label+'</td><td style="font-size:10px;color:#9a7a7a">'+p.desc+'</td><td style="font-weight:700">'+d(found.ms)+' '+ul+'</td><td class="'+devCls+'">'+devStr+'</td><td style="font-size:10px;color:#9a7a7a">'+note2+'</td></tr>';
     }
   }
   document.getElementById('sumBody').innerHTML = rows;
