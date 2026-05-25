@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="皮托管量測">
+<title>皮托管量測記錄</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { font-size: 16px; }
+body {
+  font-family: -apple-system, "PingFang TC", "Heiti TC", sans-serif;
+  background: #f0f2f0;
+  color: #1a2a1a;
+  min-height: 100vh;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── Tool Nav ── */
+.tool-nav { background:#0f3a1b; padding:6px 16px; display:flex; gap:16px; }
+.tool-nav a { color:rgba(255,255,255,0.7); text-decoration:none; font-size:13px; padding:4px 8px; border-radius:4px; }
+.tool-nav a.active { color:#fff; background:rgba(255,255,255,0.15); font-weight:600; }
+
+/* ── Top bar ── */
+.topbar {
+  background: #1a5c2e;
+  color: #fff;
+  padding: 14px 16px;
+  padding-top: calc(14px + env(safe-area-inset-top, 0px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  box-shadow: 0 2px 8px rgba(0,0,0,.18);
+}
+.topbar-flex { flex: 1; min-width: 0; }
+.topbar-title { font-size: 16px; font-weight: 700; }
+.topbar-sub { font-size: 11px; opacity: .75; margin-top: 2px; letter-spacing: .4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: #5fffaa; flex-shrink: 0; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── Cards ── */
+.section {
+  background: #fff;
+  margin: 12px;
+  border-radius: 18px;
+  border: 1px solid #d8e4d8;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(26,92,46,.07);
+}
+.sec-head {
+  background: rgba(26,92,46,.06);
+  border-bottom: 1px solid #d8e4d8;
+  padding: 11px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #1a5c2e;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sec-body { padding: 16px; }
+
+/* ── Method tabs (3 options) ── */
+.tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+.tab {
+  flex: 1;
+  padding: 10px 4px 9px;
+  border: 2px solid #d8e4d8;
+  border-radius: 13px;
+  background: #f5f7f5;
+  color: #7a9a7a;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+  font-family: inherit;
+  line-height: 1.3;
+  user-select: none;
+}
+.tab-icon { font-size: 18px; display: block; margin-bottom: 3px; }
+.tab-name { display: block; font-size: 12px; }
+.tab-sub  { display: block; font-size: 10px; opacity: .7; margin-top: 1px; }
+.tab.on {
+  border-color: #1a5c2e;
+  background: #eaf4ed;
+  color: #1a5c2e;
+}
+
+/* ── Method info badge (auto-computed points) ── */
+.auto-info {
+  background: #eaf4ed;
+  border: 1px solid rgba(26,92,46,.22);
+  border-radius: 11px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #1a4020;
+  margin-bottom: 14px;
+  line-height: 1.7;
+  display: none;
+}
+.auto-info.show { display: block; }
+.auto-info b { color: #1a5c2e; font-weight: 700; }
+
+/* ── Form fields ── */
+.row2 { display: flex; gap: 10px; }
+.row2 .fg { flex: 1; }
+.fg { margin-bottom: 14px; }
+.fg label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #7a9a7a;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+.fg input[type="number"],
+.fg input[type="text"],
+.fg select {
+  width: 100%;
+  background: #f5f7f5;
+  border: 2px solid #d8e4d8;
+  border-radius: 11px;
+  padding: 13px 14px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a2a1a;
+  font-family: inherit;
+  -webkit-appearance: none;
+  outline: none;
+  transition: border-color .15s;
+}
+.fg input[type="text"] { font-size: 15px; font-weight: 400; }
+.fg input:focus, .fg select:focus { border-color: #1a5c2e; background: #fff; }
+.fg .hint { font-size: 11px; color: #7a9a7a; margin-top: 5px; }
+
+/* ── Generate button ── */
+.gen-btn {
+  width: 100%;
+  padding: 17px;
+  background: #1a5c2e;
+  color: #fff;
+  border: none;
+  border-radius: 13px;
+  font-size: 17px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background .15s;
+}
+.gen-btn:active { background: #0f3a1b; }
+
+/* ── Pills ── */
+.pills {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eef4ee;
+}
+.pill {
+  background: #eaf4ed;
+  border: 1px solid rgba(26,92,46,.2);
+  border-radius: 20px;
+  padding: 4px 11px;
+  font-size: 12px;
+  color: #1a2a1a;
+}
+.pill b { color: #1a5c2e; font-weight: 700; }
+
+.tap-hint {
+  background: #eaf4ed;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a5c2e;
+  border-bottom: 1px solid #d8e4d8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── SVG scroll ── */
+.svg-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px;
+  background: #fafcfa;
+}
+.svg-scroll svg { display: block; }
+
+/* ── Progress ── */
+.prog-body { padding: 14px 16px; }
+.prog-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.prog-label { font-size: 14px; font-weight: 700; color: #1a5c2e; }
+.prog-count { font-size: 14px; color: #7a9a7a; font-weight: 600; }
+.prog-track { height: 7px; background: #e0e8e0; border-radius: 4px; overflow: hidden; }
+.prog-fill  { height: 100%; background: linear-gradient(90deg,#1a5c2e,#2d8a4e); border-radius: 4px; transition: width .35s ease; }
+
+/* ── Results grid ── */
+.res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #eef4ee; }
+.rb { background: #fff; padding: 15px 14px; }
+.rb.span2 { grid-column: 1/-1; background: #eaf4ed; }
+.rl { font-size: 10px; font-weight: 700; color: #7a9a7a; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 7px; }
+.rv { font-size: 29px; font-weight: 700; color: #1a2a1a; line-height: 1; }
+.rb.span2 .rv { font-size: 34px; color: #1a5c2e; }
+.ru { font-size: 12px; color: #7a9a7a; margin-top: 5px; }
+
+/* ── ASHRAE validation row ── */
+.validation-row {
+  padding: 12px 16px;
+  border-top: 1px solid #eef4ee;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #4a6a4a;
+}
+.v-ok   { color: #1a7a3a; font-weight: 700; }
+.v-warn { color: #c84010; font-weight: 700; }
+
+/* ── Summary table ── */
+.sum-wrap { padding: 14px 16px; }
+.sum-label { font-size: 11px; font-weight: 700; color: #1a5c2e; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
+.sum-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sum-table th {
+  background: #1a5c2e;
+  color: #fff;
+  padding: 9px 10px;
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.sum-table td { padding: 8px 10px; border-bottom: 1px solid #eef4ee; }
+.sum-table tr:nth-child(even) td { background: #f8fbf8; }
+.c-acc  { color: #1a5c2e; font-weight: 700; }
+.c-warn { color: #e8521a; font-weight: 700; }
+.c-ok   { color: #2d8a4e; }
+.c-dim  { color: #b0c8b0; }
+
+/* ── Action buttons ── */
+.action-row { display: flex; gap: 10px; padding: 14px 16px; border-top: 1px solid #eef4ee; flex-wrap: wrap; }
+.btn {
+  flex: 1;
+  min-width: 110px;
+  padding: 14px 12px;
+  border-radius: 12px;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: all .15s;
+}
+.btn-primary { background: #1a5c2e; color: #fff; }
+.btn-primary:active { background: #0f3a1b; }
+.btn-outline { background: #fff; color: #1a5c2e; border: 2px solid #1a5c2e; }
+.btn-outline:active { background: #eaf4ed; }
+.spacer { height: 48px; }
+
+/* ── Bottom sheet ── */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; align-items: flex-end; }
+.overlay.show { display: flex; }
+.sheet {
+  background: #fff;
+  border-radius: 22px 22px 0 0;
+  width: 100%;
+  padding: 0 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -8px 40px rgba(0,0,0,.18);
+}
+.sheet-bar { width: 44px; height: 5px; background: #d8e4d8; border-radius: 3px; margin: 14px auto 18px; }
+.sheet-title { font-size: 19px; font-weight: 700; color: #1a5c2e; margin-bottom: 4px; }
+.sheet-desc { font-size: 13px; color: #7a9a7a; margin-bottom: 20px; line-height: 1.5; }
+.sheet-lbl { font-size: 11px; font-weight: 700; color: #7a9a7a; letter-spacing: 1.2px; text-transform: uppercase; display: block; margin-bottom: 9px; }
+.inp-row { position: relative; margin-bottom: 18px; }
+.big-input {
+  width: 100%;
+  background: #f5f7f5;
+  border: 2.5px solid #d8e4d8;
+  border-radius: 14px;
+  padding: 20px 74px 20px 20px;
+  font-size: 40px;
+  font-weight: 700;
+  color: #1a2a1a;
+  text-align: right;
+  font-family: inherit;
+  -webkit-appearance: none;
+  outline: none;
+  transition: border-color .15s;
+}
+.big-input:focus { border-color: #1a5c2e; background: #fff; }
+.inp-unit { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 17px; color: #7a9a7a; font-weight: 600; pointer-events: none; }
+.sheet-btns { display: flex; gap: 10px; }
+.sheet-btns button {
+  flex: 1;
+  padding: 17px 10px;
+  border-radius: 13px;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .15s;
+}
+.sb-ok  { background: #1a5c2e; color: #fff; flex: 2; }
+.sb-ok:active { background: #0f3a1b; }
+.sb-clr { background: #fff3f0; color: #e8521a; border: 2px solid #fdddd8; }
+.sb-can { background: #f5f7f5; color: #7a9a7a; border: 2px solid #d8e4d8; }
+
+/* ── Print ── */
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { background: #fff; }
+  .tool-nav, .topbar, #cfgSection, #progSection, .action-row, .tap-hint, .overlay, .spacer { display: none !important; }
+  .section { margin: 0 0 10px; border-radius: 6px; border: 1px solid #ccc; box-shadow: none; break-inside: avoid; }
+  .svg-scroll { overflow: visible; padding: 8px; }
+  .svg-scroll svg { max-width: 100%; height: auto; }
+  .rb.span2 .rv { font-size: 26px; }
+  .rv { font-size: 22px; }
+  #pdfBanner, #sumSection { display: block !important; }
+}
+#pdfBanner {
+  display: none;
+  background: #1a5c2e;
+  color: #fff;
+  padding: 18px 20px;
+  -webkit-print-color-adjust: exact;
+}
+#pdfBanner h2 { font-size: 17px; font-weight: 700; margin-bottom: 3px; }
+#pdfBanner p  { font-size: 11px; opacity: .8; margin-bottom: 10px; }
+#pdfBanner .brow { display: flex; gap: 8px; flex-wrap: wrap; }
+#pdfBanner .btag { font-size: 11px; background: rgba(255,255,255,.2); padding: 3px 10px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- Tool Nav -->
+<nav class="tool-nav">
+  <a href="index.html">空氣線圖</a>
+  <a href="pitot.html" class="active">皮托管量測</a>
+</nav>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-flex">
+    <div class="topbar-title">🎯 皮托管量測記錄</div>
+    <div class="topbar-sub" id="topSub">Log-Tchebycheff 法 · LT METHOD · ASHRAE 111-2024</div>
+  </div>
+  <div class="live-dot"></div>
+</div>
+
+<!-- PDF Banner -->
+<div id="pdfBanner" style="display: none;">
+  <h2>皮托管風速量測報告</h2>
+  <p id="pb_methodline">PITOT TUBE TRAVERSE · EQUAL AREA METHOD · ASHRAE 111-2024</p>
+  <div class="brow">
+    <span class="btag" id="pb_note"></span>
+    <span class="btag" id="pb_method"></span>
+    <span class="btag" id="pb_shape"></span>
+    <span class="btag" id="pb_dim"></span>
+    <span class="btag" id="pb_area"></span>
+    <span class="btag" id="pb_pts"></span>
+    <span class="btag" id="pb_date"></span>
+  </div>
+</div>
+
+<!-- Config -->
+<div class="section" id="cfgSection">
+  <div class="sec-head">⚙ 風管設定</div>
+  <div class="sec-body">
+
+    <!-- 3 method tabs -->
+    <div class="tabs">
+      <div class="tab" id="tab-ea" onclick="setMethod('ea')">
+        <span class="tab-icon">▬</span>
+        <span class="tab-name">等面積法</span>
+        <span class="tab-sub">Equal Area</span>
+      </div>
+      <div class="tab on" id="tab-lt" onclick="setMethod('lt')">
+        <span class="tab-icon">▬</span>
+        <span class="tab-name">LT 法</span>
+        <span class="tab-sub">Log-Tchebycheff</span>
+      </div>
+      <div class="tab" id="tab-circ" onclick="setMethod('circ')">
+        <span class="tab-icon">●</span>
+        <span class="tab-name">圓形管</span>
+        <span class="tab-sub">Log-Linear</span>
+      </div>
+    </div>
+
+    <!-- Rectangular config (EA + LT) -->
+    <div id="rectCfg" style="">
+      <div class="row2">
+        <div class="fg">
+          <label>寬度 X</label>
+          <input type="number" id="dW" value="900" min="100" max="4000" inputmode="numeric" oninput="updateAutoInfo()">
+          <div class="hint">mm</div>
+        </div>
+        <div class="fg">
+          <label>高度 Y</label>
+          <input type="number" id="dH" value="500" min="100" max="4000" inputmode="numeric" oninput="updateAutoInfo()">
+          <div class="hint">mm</div>
+        </div>
+      </div>
+      <div class="auto-info show" id="autoInfoRect">依 ASHRAE 111 Log-Tchebycheff 法自動選擇：<br>　X方向 800mm → <b>6點 (30"–63")</b><br>　Y方向 500mm → <b>5點 (&lt;30")</b><br>　共 <b>30</b> 個量測點</div>
+      <div class="row2">
+        <div class="fg">
+          <label>風速單位</label>
+          <select id="unitRect">
+            <option value="ms">m/s</option>
+            <option value="fpm">fpm</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>案件說明</label>
+          <input type="text" id="noteRect" placeholder="位置 / 日期…">
+        </div>
+      </div>
+    </div>
+
+    <!-- Circular config -->
+    <div id="circCfg" style="display: none;">
+      <div class="row2">
+        <div class="fg">
+          <label>直徑 D</label>
+          <input type="number" id="dD" value="600" min="50" max="3000" inputmode="numeric" oninput="updateAutoInfoCirc()">
+          <div class="hint">mm</div>
+        </div>
+        <div class="fg">
+          <label>風速單位</label>
+          <select id="unitCirc">
+            <option value="ms">m/s</option>
+            <option value="fpm">fpm</option>
+          </select>
+        </div>
+      </div>
+      <div class="auto-info show" id="autoInfoCirc">依 ASHRAE 111 Log-Linear Rule：<br>　<b>10點/徑 (D≥10" = 254mm)</b><br>　水平 + 垂直共 <b>20</b> 個量測點</div>
+      <div class="fg">
+        <label>案件說明</label>
+        <input type="text" id="noteCirc" placeholder="位置 / 日期…">
+      </div>
+    </div>
+
+    <button class="gen-btn" onclick="generate()">⚡ 產生量測圖</button>
+  </div>
+</div>
+
+<!-- Diagram -->
+<div class="section" id="diagSection" style="">
+  <div class="sec-head">📐 量測點位置圖</div>
+  <div class="tap-hint">👆 點擊圓點輸入風速</div>
+  <div class="pills" id="pills"><div class="pill"><b>Log-Tchebycheff</b></div><div class="pill">800×500 mm</div><div class="pill">共 <b>30</b> 點</div><div class="pill">面積 <b>0.4000</b> m²</div></div>
+  <div class="svg-scroll" id="svgWrap"></div>
+</div>
+
+<!-- Progress -->
+<div class="section" id="progSection" style="">
+  <div class="prog-body">
+    <div class="prog-row">
+      <div class="prog-label">量測進度</div>
+      <div class="prog-count"><span id="fcnt">0</span> / <span id="tcnt">30</span> 點</div>
+    </div>
+    <div class="prog-track">
+      <div class="prog-fill" id="pfill" style="width:0%"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Results -->
+<div class="section" id="resSection" style="">
+  <div class="sec-head">📊 計算結果</div>
+  <div id="noteDisp" style="padding:10px 16px 0;font-size:12px;color:#7a9a7a"></div>
+  <div class="res-grid">
+    <div class="rb span2">
+      <div class="rl">平均風速</div>
+      <div class="rv" id="rAvg">—</div>
+      <div class="ru" id="rAvgU">m/s</div>
+    </div>
+    <div class="rb">
+      <div class="rl">風量 CMH</div>
+      <div class="rv" id="rCMH">—</div>
+      <div class="ru">m³/h</div>
+    </div>
+    <div class="rb">
+      <div class="rl">風量 CMM</div>
+      <div class="rv" id="rCMM">—</div>
+      <div class="ru">m³/min</div>
+    </div>
+    <div class="rb">
+      <div class="rl">斷面積</div>
+      <div class="rv" id="rArea">—</div>
+      <div class="ru">m²</div>
+    </div>
+    <div class="rb">
+      <div class="rl">風量 CFM</div>
+      <div class="rv" id="rCFM">—</div>
+      <div class="ru">ft³/min</div>
+    </div>
+    <div class="rb">
+      <div class="rl">最大風速</div>
+      <div class="rv" id="rMax">—</div>
+      <div class="ru" id="rMaxU">m/s</div>
+    </div>
+    <div class="rb">
+      <div class="rl">最小風速</div>
+      <div class="rv" id="rMin">—</div>
+      <div class="ru" id="rMinU">m/s</div>
+    </div>
+    <div class="rb">
+      <div class="rl">有效點數</div>
+      <div class="rv" id="rN">—</div>
+      <div class="ru">點</div>
+    </div>
+  </div>
+
+  <!-- ASHRAE 111 Validation -->
+  <div class="validation-row" id="validRow" style="display:none"></div>
+
+  <!-- Detail table -->
+  <div id="sumSection" style="display: none;">
+    <div class="sum-wrap">
+      <div class="sum-label">各點量測明細</div>
+      <div style="overflow-x:auto">
+        <table class="sum-table">
+          <thead>
+            <tr><th>#</th><th>標識</th><th>位置</th><th>風速</th><th>偏差</th><th>備註</th></tr>
+          </thead>
+          <tbody id="sumBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <button class="btn btn-primary" onclick="exportPDF()">📄 匯出 PDF</button>
+    <button class="btn btn-outline" onclick="clearAll()">↺ 重新量測</button>
+  </div>
+</div>
+
+<div class="spacer"></div>
+
+<!-- Bottom sheet -->
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <div class="sheet-bar"></div>
+    <div class="sheet-title" id="sheetTitle">點 1</div>
+    <div class="sheet-desc" id="sheetDesc">位置描述</div>
+    <label class="sheet-lbl">輸入風速</label>
+    <div class="inp-row">
+      <input class="big-input" id="bigInput" type="number" inputmode="decimal" min="0" max="9999" step="0.01" placeholder="0.00">
+      <span class="inp-unit" id="bigUnit">m/s</span>
+    </div>
+    <div class="sheet-btns">
+      <button class="sb-clr" onclick="clearPt()">🗑 清除</button>
+      <button class="sb-can" onclick="closeSheet()">取消</button>
+      <button class="sb-ok" onclick="savePt()">✓ 確認</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────
+var method = 'lt';
+var pts = [];
+var activePtId = -1;
+var dW = 900, dH = 500, dD = 600;
+var curNote = '';
+
+// ── ASHRAE 111-2024 · Equal Area lookup ────────────────────────
+var EA_TABLE = [
+  [102, 2],
+  [381, 3],
+  [610, 4],
+  [889, 5],
+  [1219, 6],
+  [1600, 7],
+  [2032, 8],
+  [2515, 9]
+];
+var EA_INCH_LABELS = ['≤4"','≤15"','≤24"','≤35"','≤48"','≤63"','≤80"','≤99"','≥100"'];
+
+function eaCount(mm) {
+  for (var i = 0; i < EA_TABLE.length; i++) {
+    if (mm <= EA_TABLE[i][0]) return EA_TABLE[i][1];
+  }
+  return 10;
+}
+function eaFracs(n) {
+  var f = [];
+  for (var k = 1; k <= n; k++) f.push((2*k-1) / (2*n));
+  return f;
+}
+function eaLabel(mm) {
+  var n = eaCount(mm);
+  for (var i = 0; i < EA_TABLE.length; i++) {
+    if (mm <= EA_TABLE[i][0]) return n + '點 (' + EA_INCH_LABELS[i] + ')';
+  }
+  return n + '點 (≥100")';
+}
+
+// ── ASHRAE 111-2024 · Log-Tchebycheff lookup ───────────────────
+var LT_TABLE = [
+  { max: 381,      pts: [0.146, 0.500, 0.854],                               label: '3點 (≤15")',    n: 3 },
+  { max: 762,      pts: [0.074, 0.288, 0.500, 0.712, 0.926],                 label: '5點 (<30")',    n: 5 },
+  { max: 1600,     pts: [0.061, 0.235, 0.437, 0.563, 0.765, 0.939],          label: '6點 (30"–63")', n: 6 },
+  { max: Infinity, pts: [0.053, 0.203, 0.366, 0.500, 0.634, 0.797, 0.947],   label: '7點 (>63")',    n: 7 }
+];
+function ltData(mm) {
+  for (var i = 0; i < LT_TABLE.length; i++) {
+    if (mm <= LT_TABLE[i].max) return LT_TABLE[i];
+  }
+  return LT_TABLE[LT_TABLE.length - 1];
+}
+
+// ── ASHRAE 111-2024 · Log-Linear Rule (circular) ───────────────
+var CIRC_SMALL = [0.032, 0.135, 0.321, 0.679, 0.865, 0.968];
+var CIRC_LARGE = [0.019, 0.077, 0.153, 0.217, 0.361, 0.639, 0.783, 0.847, 0.923, 0.981];
+function circFracs(D) { return D < 254 ? CIRC_SMALL : CIRC_LARGE; }
+function circLabel(D) { return D < 254 ? '6點/徑 (D<10" = 254mm)' : '10點/徑 (D≥10" = 254mm)'; }
+
+// ── Method toggle ──────────────────────────────────────────────
+var METHOD_SUBS = {
+  ea:   '等面積法 · EQUAL AREA · ASHRAE 111-2024',
+  lt:   'Log-Tchebycheff 法 · LT METHOD · ASHRAE 111-2024',
+  circ: '圓形管 Log-Linear · CIRCULAR · ASHRAE 111-2024'
+};
+function setMethod(m) {
+  method = m;
+  ['ea','lt','circ'].forEach(function(k) {
+    document.getElementById('tab-'+k).className = 'tab' + (k===m ? ' on' : '');
+  });
+  var isRect = (m !== 'circ');
+  document.getElementById('rectCfg').style.display = isRect ? '' : 'none';
+  document.getElementById('circCfg').style.display = isRect ? 'none' : '';
+  document.getElementById('topSub').textContent = METHOD_SUBS[m];
+  if (isRect) updateAutoInfo(); else updateAutoInfoCirc();
+}
+
+// ── Auto-info boxes ────────────────────────────────────────────
+function updateAutoInfo() {
+  var w = parseInt(document.getElementById('dW').value) || 0;
+  var h = parseInt(document.getElementById('dH').value) || 0;
+  var el = document.getElementById('autoInfoRect');
+  if (!w || !h) { el.className = 'auto-info'; return; }
+  var html = '';
+  if (method === 'ea') {
+    var nx = eaCount(w), ny = eaCount(h);
+    html = '依 ASHRAE 111 等面積法自動選擇：<br>'
+         + '　X方向 ' + w + 'mm → <b>' + eaLabel(w) + '</b><br>'
+         + '　Y方向 ' + h + 'mm → <b>' + eaLabel(h) + '</b><br>'
+         + '　共 <b>' + (nx*ny) + '</b> 個量測點';
+  } else {
+    var xd = ltData(w), yd = ltData(h);
+    html = '依 ASHRAE 111 Log-Tchebycheff 法自動選擇：<br>'
+         + '　X方向 ' + w + 'mm → <b>' + xd.label + '</b><br>'
+         + '　Y方向 ' + h + 'mm → <b>' + yd.label + '</b><br>'
+         + '　共 <b>' + (xd.n * yd.n) + '</b> 個量測點';
+  }
+  el.innerHTML = html;
+  el.className = 'auto-info show';
+}
+
+function updateAutoInfoCirc() {
+  var d = parseInt(document.getElementById('dD').value) || 0;
+  var el = document.getElementById('autoInfoCirc');
+  if (!d) { el.className = 'auto-info'; return; }
+  var n = circFracs(d).length;
+  el.innerHTML = '依 ASHRAE 111 Log-Linear Rule：<br>'
+               + '　<b>' + circLabel(d) + '</b><br>'
+               + '　水平 + 垂直共 <b>' + (n*2) + '</b> 個量測點';
+  el.className = 'auto-info show';
+}
+
+// ── Point generators ───────────────────────────────────────────
+function mkEAPts(W, H) {
+  var xF = eaFracs(eaCount(W)), yF = eaFracs(eaCount(H));
+  var list = [], id = 1;
+  for (var yi = 0; yi < yF.length; yi++) {
+    for (var xi = 0; xi < xF.length; xi++) {
+      list.push({
+        id: id++, label: 'R'+(yi+1)+'-C'+(xi+1),
+        xmm: xF[xi]*W, ymm: yF[yi]*H,
+        desc: 'X='+Math.round(xF[xi]*W)+'mm　Y='+Math.round(yF[yi]*H)+'mm',
+        val: null
+      });
+    }
+  }
+  return list;
+}
+
+function mkLTPts(W, H) {
+  var xF = ltData(W).pts, yF = ltData(H).pts;
+  var list = [], id = 1;
+  for (var yi = 0; yi < yF.length; yi++) {
+    for (var xi = 0; xi < xF.length; xi++) {
+      list.push({
+        id: id++, label: 'R'+(yi+1)+'-C'+(xi+1),
+        xmm: xF[xi]*W, ymm: yF[yi]*H,
+        desc: 'X='+Math.round(xF[xi]*W)+'mm　Y='+Math.round(yF[yi]*H)+'mm',
+        val: null
+      });
+    }
+  }
+  return list;
+}
+
+function mkCircPts(D) {
+  var fracs = circFracs(D);
+  var list = [], id = 1;
+  for (var i = 0; i < fracs.length; i++) {
+    list.push({
+      id: id++, label: 'H'+(i+1),
+      xmm: fracs[i]*D, ymm: D/2,
+      desc: '水平軸　距左壁 '+Math.round(fracs[i]*D)+'mm',
+      val: null
+    });
+  }
+  for (var i = 0; i < fracs.length; i++) {
+    list.push({
+      id: id++, label: 'V'+(i+1),
+      xmm: D/2, ymm: fracs[i]*D,
+      desc: '垂直軸　距上壁 '+Math.round(fracs[i]*D)+'mm',
+      val: null
+    });
+  }
+  return list;
+}
+
+// ── Generate ───────────────────────────────────────────────────
+function generate() {
+  if (method === 'circ') {
+    dD = parseInt(document.getElementById('dD').value) || 0;
+    if (dD < 50) { alert('請輸入有效直徑（≥50mm）'); return; }
+    pts = mkCircPts(dD);
+    curNote = document.getElementById('noteCirc').value;
+  } else {
+    dW = parseInt(document.getElementById('dW').value) || 0;
+    dH = parseInt(document.getElementById('dH').value) || 0;
+    if (dW < 100 || dH < 100) { alert('請輸入有效尺寸（≥100mm）'); return; }
+    pts = method === 'ea' ? mkEAPts(dW, dH) : mkLTPts(dW, dH);
+    curNote = document.getElementById('noteRect').value;
+  }
+  drawSVG();
+  updateResults();
+  document.getElementById('diagSection').style.display = '';
+  document.getElementById('progSection').style.display = '';
+  document.getElementById('resSection').style.display  = '';
+  document.getElementById('tcnt').textContent = pts.length;
+  setTimeout(function() {
+    document.getElementById('diagSection').scrollIntoView({ behavior: 'smooth' });
+  }, 120);
+}
+
+// ── Area ───────────────────────────────────────────────────────
+function getArea() {
+  if (method === 'circ') return Math.PI * Math.pow(dD/2000, 2);
+  return (dW/1000) * (dH/1000);
+}
+
+function getUnit() {
+  return method === 'circ'
+    ? document.getElementById('unitCirc').value
+    : document.getElementById('unitRect').value;
+}
+function getUL() { return getUnit() === 'fpm' ? 'fpm' : 'm/s'; }
+
+// ── SVG Drawing ────────────────────────────────────────────────
+function drawSVG() {
+  var wrap = document.getElementById('svgWrap');
+  wrap.innerHTML = method === 'circ' ? buildCircSVG() : buildRectSVG();
+  for (var i = 0; i < pts.length; i++) {
+    (function(pid) {
+      var g = document.getElementById('pt'+pid);
+      if (g) g.onclick = function() { openSheet(pid); };
+    })(pts[i].id);
+  }
+  var mNames = { ea: '等面積法', lt: 'Log-Tchebycheff', circ: '圓形 Log-Linear' };
+  var dimStr = method === 'circ' ? 'Ø'+dD+'mm' : dW+'×'+dH+' mm';
+  document.getElementById('pills').innerHTML =
+    '<div class="pill"><b>'+mNames[method]+'</b></div>' +
+    '<div class="pill">'+dimStr+'</div>' +
+    '<div class="pill">共 <b>'+pts.length+'</b> 點</div>' +
+    '<div class="pill">面積 <b>'+getArea().toFixed(4)+'</b> m²</div>';
+}
+
+// ── RECT SVG (EA + LT unified) ─────────────────────────────────
+function buildRectSVG() {
+  var W = dW, H = dH;
+  var vw = Math.min(window.innerWidth - 28, 560);
+  var ratio = H / W;
+  var drawW = Math.min(vw - 100, 420);
+  var drawH = Math.round(drawW * ratio);
+  if (drawH > 340) { drawH = 340; drawW = Math.round(drawH / ratio); }
+  if (drawH < 80)   drawH = 80;
+
+  var ML = 66, MR = 14, MT = 52, MB = 40;
+  var SW = drawW+ML+MR, SH = drawH+MT+MB;
+  var ox = ML, oy = MT;
+
+  var xFracs = [], yFracs = [];
+  for (var i = 0; i < pts.length; i++) {
+    var xf = pts[i].xmm / W, yf = pts[i].ymm / H;
+    if (xFracs.indexOf(xf) < 0) xFracs.push(xf);
+    if (yFracs.indexOf(yf) < 0) yFracs.push(yf);
+  }
+  xFracs.sort(function(a,b){return a-b;});
+  yFracs.sort(function(a,b){return a-b;});
+
+  var nx = xFracs.length, ny = yFracs.length;
+  var PR = Math.min(22, Math.max(9, Math.floor(Math.min(drawW/nx, drawH/ny) * 0.34)));
+
+  var s = '<svg xmlns="http://www.w3.org/2000/svg" width="'+SW+'" height="'+SH+'">';
+  s += '<rect width="'+SW+'" height="'+SH+'" fill="#fafcfa"/>';
+  s += '<rect x="'+ox+'" y="'+oy+'" width="'+drawW+'" height="'+drawH+'" fill="#fff"/>';
+
+  function cellBounds(fracs) {
+    var bounds = [];
+    for (var i = 0; i <= fracs.length; i++) {
+      var lo = i === 0 ? 0 : (fracs[i-1]+fracs[i])/2;
+      var hi = i === fracs.length ? 1 : (fracs[i]+fracs[i+1])/2;
+      if (i === fracs.length - 1) hi = 1;
+      bounds.push([lo, hi]);
+    }
+    return bounds;
+  }
+  var xBnds = cellBounds(xFracs);
+  var yBnds = cellBounds(yFracs);
+  for (var r = 0; r < ny; r++) {
+    for (var c = 0; c < nx; c++) {
+      var x1 = ox + xBnds[c][0]*drawW, x2 = ox + xBnds[c][1]*drawW;
+      var y1 = oy + yBnds[r][0]*drawH, y2 = oy + yBnds[r][1]*drawH;
+      s += '<rect x="'+x1+'" y="'+y1+'" width="'+(x2-x1)+'" height="'+(y2-y1)+'" fill="'+((r+c)%2===0?'rgba(26,92,46,0.05)':'rgba(26,92,46,0.012)')+'"/>';
+    }
+  }
+
+  for (var i = 0; i < xFracs.length; i++) {
+    var gx = ox + xFracs[i]*drawW;
+    s += '<line x1="'+gx+'" y1="'+oy+'" x2="'+gx+'" y2="'+(oy+drawH)+'" stroke="rgba(26,92,46,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>';
+  }
+  for (var i = 0; i < yFracs.length; i++) {
+    var gy = oy + yFracs[i]*drawH;
+    s += '<line x1="'+ox+'" y1="'+gy+'" x2="'+(ox+drawW)+'" y2="'+gy+'" stroke="rgba(26,92,46,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>';
+  }
+
+  s += '<rect x="'+ox+'" y="'+oy+'" width="'+drawW+'" height="'+drawH+'" fill="none" stroke="#1a5c2e" stroke-width="2.5"/>';
+  s += '<text x="'+(ox+drawW/2)+'" y="'+(oy-36)+'" text-anchor="middle" font-size="13" fill="#222" font-weight="bold" font-family="sans-serif">X = '+W+' mm</text>';
+  s += '<line x1="'+ox+'" y1="'+(oy-28)+'" x2="'+(ox+drawW)+'" y2="'+(oy-28)+'" stroke="#ccc" stroke-width="1"/>';
+  for (var i = 0; i < xFracs.length; i++) {
+    var tx = ox + xFracs[i]*drawW;
+    s += '<line x1="'+tx+'" y1="'+(oy+drawH+1)+'" x2="'+tx+'" y2="'+(oy+drawH+6)+'" stroke="#bbb" stroke-width="1"/>';
+    s += '<text x="'+tx+'" y="'+(oy+drawH+17)+'" text-anchor="middle" font-size="10" fill="#888" font-family="sans-serif">'+Math.round(xFracs[i]*W)+'</text>';
+  }
+  s += '<text x="'+(ox+drawW/2)+'" y="'+(oy+drawH+30)+'" text-anchor="middle" font-size="9" fill="#bbb" font-family="sans-serif">X 位置 (mm)</text>';
+  s += '<text x="'+(ox-46)+'" y="'+(oy+drawH/2)+'" text-anchor="middle" font-size="13" fill="#222" font-weight="bold" font-family="sans-serif" transform="rotate(-90,'+(ox-46)+','+(oy+drawH/2)+')">Y = '+H+' mm</text>';
+  for (var i = 0; i < yFracs.length; i++) {
+    var ty = oy + yFracs[i]*drawH;
+    s += '<line x1="'+(ox-1)+'" y1="'+ty+'" x2="'+(ox-5)+'" y2="'+ty+'" stroke="#bbb" stroke-width="1"/>';
+    s += '<text x="'+(ox-8)+'" y="'+(ty+4)+'" text-anchor="end" font-size="10" fill="#888" font-family="sans-serif">'+Math.round(yFracs[i]*H)+'</text>';
+  }
+
+  for (var i = 0; i < pts.length; i++) {
+    var p = pts[i];
+    var px = ox + (p.xmm/W)*drawW;
+    var py = oy + (p.ymm/H)*drawH;
+    var has = p.val !== null;
+    s += '<g id="pt'+p.id+'" style="cursor:pointer">';
+    s += '<circle cx="'+px+'" cy="'+py+'" r="'+(PR+4)+'" fill="rgba(0,0,0,0.05)"/>';
+    s += '<circle cx="'+px+'" cy="'+py+'" r="'+PR+'" fill="'+(has?'#eaf4ed':'#fff')+'" stroke="'+(has?'#1a5c2e':'#c8d8c8')+'" stroke-width="'+(has?2.5:1.8)+'"/>';
+    s += '<text x="'+px+'" y="'+(py-PR*0.24)+'" text-anchor="middle" font-size="9" fill="'+(has?'#2d8a4e':'#c0c8c0')+'" font-family="sans-serif">'+p.label+'</text>';
+    if (has) {
+      s += '<text x="'+px+'" y="'+(py+PR*0.34)+'" text-anchor="middle" font-size="12" fill="#1a5c2e" font-weight="bold" font-family="sans-serif">'+p.val.toFixed(2)+'</text>';
+      s += '<text x="'+px+'" y="'+(py+PR*0.74)+'" text-anchor="middle" font-size="8" fill="#7a9a7a" font-family="sans-serif">'+getUL()+'</text>';
+    } else {
+      s += '<text x="'+px+'" y="'+(py+PR*0.42)+'" text-anchor="middle" font-size="14" fill="#ddd" font-family="sans-serif">—</text>';
+    }
+    s += '</g>';
+  }
+  s += '</svg>';
+  return s;
+}
+
+// ── CIRCULAR SVG (Log-Linear, 2 perpendicular diameters) ───────
+function buildCircSVG() {
+  var D = dD;
+  var vw = Math.min(window.innerWidth - 28, 500);
+  var RADIUS = Math.min(155, Math.floor((vw - 80) / 2));
+  var PAD = 50;
+  var SW = RADIUS*2+PAD*2+60, SH = RADIUS*2+PAD*2+16;
+  var cx = SW/2, cy = PAD+RADIUS;
+  var fracs = circFracs(D);
+  var nPts = fracs.length;
+  var PR = Math.min(16, Math.max(7, Math.floor(RADIUS * 0.09)));
+
+  var s = '<svg xmlns="http://www.w3.org/2000/svg" width="'+SW+'" height="'+SH+'">';
+  s += '<rect width="'+SW+'" height="'+SH+'" fill="#fafcfa"/>';
+  s += '<circle cx="'+cx+'" cy="'+cy+'" r="'+RADIUS+'" fill="rgba(26,92,46,0.04)"/>';
+  s += '<line x1="'+(cx-RADIUS-10)+'" y1="'+cy+'" x2="'+(cx+RADIUS+10)+'" y2="'+cy+'" stroke="rgba(26,92,46,0.2)" stroke-width="1.5"/>';
+  s += '<line x1="'+cx+'" y1="'+(cy-RADIUS-10)+'" x2="'+cx+'" y2="'+(cy+RADIUS+10)+'" stroke="rgba(26,92,46,0.2)" stroke-width="1.5"/>';
+  s += '<circle cx="'+cx+'" cy="'+cy+'" r="'+RADIUS+'" fill="none" stroke="#1a5c2e" stroke-width="2.5"/>';
+  s += '<text x="'+cx+'" y="'+(cy+RADIUS+22)+'" text-anchor="middle" font-size="13" fill="#222" font-weight="bold" font-family="sans-serif">D = '+D+' mm</text>';
+  var axLbl = [{x:cx-RADIUS-13,y:cy+4,a:'end',t:'H←'},{x:cx+RADIUS+13,y:cy+4,a:'start',t:'→H'},
+               {x:cx,y:cy-RADIUS-13,a:'middle',t:'↑V'},{x:cx,y:cy+RADIUS+13,a:'middle',t:'V↓'}];
+  for (var i=0;i<axLbl.length;i++) {
+    s += '<text x="'+axLbl[i].x+'" y="'+axLbl[i].y+'" text-anchor="'+axLbl[i].a+'" font-size="11" fill="#7a9a7a" font-weight="bold" font-family="sans-serif">'+axLbl[i].t+'</text>';
+  }
+
+  for (var i = 0; i < pts.length; i++) {
+    var p = pts[i];
+    var px = cx + (p.xmm/D - 0.5) * 2 * RADIUS;
+    var py = cy + (p.ymm/D - 0.5) * 2 * RADIUS;
+    var has = p.val !== null;
+    s += '<g id="pt'+p.id+'" style="cursor:pointer">';
+    s += '<circle cx="'+px+'" cy="'+py+'" r="'+(PR+4)+'" fill="rgba(0,0,0,0.05)"/>';
+    s += '<circle cx="'+px+'" cy="'+py+'" r="'+PR+'" fill="'+(has?'#eaf4ed':'#fff')+'" stroke="'+(has?'#1a5c2e':'#c8d8c8')+'" stroke-width="'+(has?2.5:1.8)+'"/>';
+    var isH = (p.ymm === D/2);
+    var lx = px, ly = py - PR - 5;
+    if (!isH) { lx = px + PR + 5; ly = py + 4; }
+    var la = isH ? 'middle' : 'start';
+    s += '<text x="'+lx+'" y="'+ly+'" text-anchor="'+la+'" font-size="9" fill="'+(has?'#1a5c2e':'#aaa')+'" font-weight="'+(has?'bold':'normal')+'" font-family="sans-serif">'+p.label+'</text>';
+    if (has) {
+      s += '<text x="'+px+'" y="'+(py+PR*0.28)+'" text-anchor="middle" font-size="11" fill="#1a5c2e" font-weight="bold" font-family="sans-serif">'+p.val.toFixed(2)+'</text>';
+      s += '<text x="'+px+'" y="'+(py+PR*0.72)+'" text-anchor="middle" font-size="7" fill="#7a9a7a" font-family="sans-serif">'+getUL()+'</text>';
+    } else {
+      s += '<text x="'+px+'" y="'+(py+PR*0.44)+'" text-anchor="middle" font-size="13" fill="#ddd" font-family="sans-serif">—</text>';
+    }
+    s += '</g>';
+  }
+  s += '</svg>';
+  return s;
+}
+
+// ── Bottom sheet ───────────────────────────────────────────────
+function openSheet(pid) {
+  var p = null;
+  for (var i = 0; i < pts.length; i++) if (pts[i].id===pid) { p=pts[i]; break; }
+  if (!p) return;
+  activePtId = pid;
+  document.getElementById('sheetTitle').textContent = '點 ' + p.id + ' — ' + p.label;
+  document.getElementById('sheetDesc').textContent  = p.desc;
+  document.getElementById('bigUnit').textContent    = getUL();
+  document.getElementById('bigInput').value         = p.val !== null ? p.val : '';
+  document.getElementById('overlay').className      = 'overlay show';
+  setTimeout(function() { document.getElementById('bigInput').focus(); }, 260);
+}
+function closeSheet() {
+  document.getElementById('overlay').className = 'overlay';
+  activePtId = -1;
+}
+function savePt() {
+  var v = parseFloat(document.getElementById('bigInput').value);
+  for (var i = 0; i < pts.length; i++) {
+    if (pts[i].id === activePtId) { pts[i].val = isNaN(v) ? null : v; break; }
+  }
+  closeSheet(); drawSVG(); updateResults();
+}
+function clearPt() {
+  for (var i = 0; i < pts.length; i++) {
+    if (pts[i].id === activePtId) { pts[i].val = null; break; }
+  }
+  closeSheet(); drawSVG(); updateResults();
+}
+document.getElementById('overlay').onclick = function(e) {
+  if (e.target === this) closeSheet();
+};
+
+// ── Results ────────────────────────────────────────────────────
+function updateResults() {
+  var isFpm = getUnit() === 'fpm';
+  var vals = [];
+  for (var i = 0; i < pts.length; i++) {
+    if (pts[i].val !== null) {
+      vals.push({ pt: pts[i], ms: isFpm ? pts[i].val * 0.00508 : pts[i].val });
+    }
+  }
+  var n = vals.length;
+  document.getElementById('fcnt').textContent = n;
+  document.getElementById('pfill').style.width = (pts.length ? n/pts.length*100 : 0) + '%';
+  document.getElementById('noteDisp').textContent = curNote ? '📋 ' + curNote : '';
+
+  if (n === 0) {
+    ['rAvg','rCMH','rCMM','rCFM','rArea','rN','rMax','rMin'].forEach(function(id) {
+      document.getElementById(id).textContent = '—';
+    });
+    document.getElementById('sumSection').style.display = 'none';
+    document.getElementById('validRow').style.display = 'none';
+    return;
+  }
+
+  var msList = vals.map(function(v){ return v.ms; });
+  var sum = 0; for (var i=0;i<msList.length;i++) sum += msList[i];
+  var avg  = sum / n;
+  var area = getArea();
+  var ul   = getUL();
+  var mx = msList[0], mn = msList[0];
+  for (var i=1;i<msList.length;i++) { if(msList[i]>mx) mx=msList[i]; if(msList[i]<mn) mn=msList[i]; }
+
+  function d(ms) { return isFpm ? (ms/0.00508).toFixed(1) : ms.toFixed(2); }
+
+  document.getElementById('rAvg').textContent  = d(avg);
+  document.getElementById('rAvgU').textContent = ul;
+  document.getElementById('rCMH').textContent  = (avg*area*3600).toFixed(1);
+  document.getElementById('rCMM').textContent  = (avg*area*60).toFixed(2);
+  document.getElementById('rCFM').textContent  = (avg*area*60*35.3147).toFixed(1);
+  document.getElementById('rArea').textContent = area.toFixed(4);
+  document.getElementById('rN').textContent    = n + ' / ' + pts.length;
+  document.getElementById('rMax').textContent  = d(mx);
+  document.getElementById('rMaxU').textContent = ul;
+  document.getElementById('rMin').textContent  = d(mn);
+  document.getElementById('rMinU').textContent = ul;
+
+  var checks = [];
+  var hasZero = msList.some(function(v){ return v <= 0; });
+  if (hasZero) checks.push('<span class="v-warn">⚠ 有零或負值讀數 — 量測位置可能不適合</span>');
+  else checks.push('<span class="v-ok">✓ 無負值讀數</span>');
+  var threshold = mx * Math.sqrt(0.1);
+  var aboveThreshold = msList.filter(function(v){ return v > threshold; }).length;
+  var pct75 = aboveThreshold / n >= 0.75;
+  if (pct75) checks.push('<span class="v-ok">✓ 75%讀值 > 最大值的√(1/10)（符合 ASHRAE 111）</span>');
+  else checks.push('<span class="v-warn">⚠ 低速點偏多 — 流場可能不均勻</span>');
+  if (n < pts.length) checks.push('<span style="color:#7a5a00">⚠ 尚有 '+(pts.length-n)+' 點未量測</span>');
+  else checks.push('<span class="v-ok">✓ 所有量測點完成</span>');
+
+  var vr = document.getElementById('validRow');
+  vr.innerHTML = '<b style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#1a5c2e">ASHRAE 111 驗核</b><br>' + checks.join('<br>');
+  vr.style.display = '';
+
+  var rows = '';
+  for (var i = 0; i < pts.length; i++) {
+    var p = pts[i];
+    var found = null;
+    for (var j = 0; j < vals.length; j++) if (vals[j].pt.id===p.id) { found=vals[j]; break; }
+    if (!found) {
+      rows += '<tr><td>'+p.id+'</td><td class="c-acc">'+p.label+'</td><td style="font-size:10px;color:#aaa">'+p.desc+'</td><td class="c-dim">—</td><td class="c-dim">—</td><td></td></tr>';
+    } else {
+      var dev = (found.ms - avg) / avg * 100;
+      var devStr = (dev>=0?'+':'')+dev.toFixed(1)+'%';
+      var devCls = Math.abs(dev)>20?'c-warn':Math.abs(dev)>10?'':'c-ok';
+      var note2 = found.ms===mx && n===1 ? '' : found.ms===mx ? '▲ 最大' : found.ms===mn ? '▼ 最小' : '';
+      rows += '<tr><td>'+p.id+'</td><td class="c-acc">'+p.label+'</td><td style="font-size:10px;color:#7a9a7a">'+p.desc+'</td><td style="font-weight:700">'+d(found.ms)+' '+ul+'</td><td class="'+devCls+'">'+devStr+'</td><td style="font-size:10px;color:#7a9a7a">'+note2+'</td></tr>';
+    }
+  }
+  document.getElementById('sumBody').innerHTML = rows;
+  document.getElementById('sumSection').style.display = '';
+
+  var now = new Date();
+  var ds = now.getFullYear()+'-'+(now.getMonth()+1+'').padStart(2,'0')+'-'+(now.getDate()+'').padStart(2,'0');
+  var mNames = { ea: '等面積法', lt: 'Log-Tchebycheff', circ: '圓形 Log-Linear' };
+  document.getElementById('pb_note').textContent      = curNote || '皮托管量測報告';
+  document.getElementById('pb_method').textContent    = mNames[method];
+  document.getElementById('pb_shape').textContent     = method==='circ' ? '圓形風管' : '矩形風管';
+  document.getElementById('pb_dim').textContent       = method==='circ' ? 'Ø'+dD+'mm' : dW+'×'+dH+'mm';
+  document.getElementById('pb_area').textContent      = '斷面積 '+area.toFixed(4)+'m²';
+  document.getElementById('pb_pts').textContent       = '量測 '+n+'/'+pts.length+'點';
+  document.getElementById('pb_date').textContent      = ds;
+  document.getElementById('pb_methodline').textContent = 'PITOT TUBE TRAVERSE · ' + mNames[method].toUpperCase() + ' · ASHRAE 111-2024';
+}
+
+// ── Export PDF ─────────────────────────────────────────────────
+function exportPDF() {
+  document.getElementById('pdfBanner').style.display = 'block';
+  document.getElementById('sumSection').style.display = '';
+  window.print();
+  setTimeout(function() { document.getElementById('pdfBanner').style.display = 'none'; }, 2000);
+}
+
+// ── Clear all ──────────────────────────────────────────────────
+function clearAll() {
+  for (var i = 0; i < pts.length; i++) pts[i].val = null;
+  drawSVG(); updateResults();
+}
+
+// Init
+updateAutoInfo();
+</script>
+
+</body></html>

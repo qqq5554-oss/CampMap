@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>空氣線圖 Psychrometric Chart</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --s: 1; --sidebar-w: 360px; }
+body {
+  font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  background: #eceff1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.header {
+  background: linear-gradient(135deg, #1a237e, #283593);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 52px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  z-index: 10;
+}
+.header-title { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+.lang-btn {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.lang-btn:hover { background: rgba(255,255,255,0.25); }
+
+/* ── Main layout ── */
+.main-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: 280px;
+  max-width: 600px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-right: 1px solid #ddd;
+  position: relative;
+}
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: calc(10px * var(--s)) calc(12px * var(--s));
+}
+
+/* Resize handle */
+.resize-handle {
+  position: absolute;
+  top: 0; right: 0;
+  width: 5px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 20;
+}
+.resize-handle:hover { background: rgba(26,35,126,0.2); }
+
+/* ── Tool nav ── */
+.tool-nav-section {
+  background: #1a237e;
+  padding: calc(6px * var(--s)) calc(10px * var(--s));
+  margin: calc(-10px * var(--s)) calc(-12px * var(--s)) calc(10px * var(--s));
+  display: flex;
+  flex-direction: column;
+  gap: calc(3px * var(--s));
+}
+.tool-nav-title {
+  font-size: calc(9px * var(--s));
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: calc(4px * var(--s)) calc(6px * var(--s)) calc(2px * var(--s));
+}
+.tool-nav-links { display: flex; flex-direction: column; gap: calc(2px * var(--s)); }
+.tool-nav-links a {
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+  font-size: calc(12px * var(--s));
+  padding: calc(5px * var(--s)) calc(8px * var(--s));
+  border-radius: 4px;
+  display: block;
+  transition: background 0.15s, color 0.15s;
+}
+.tool-nav-links a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.tool-nav-links a.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 700; }
+
+/* ── Tabs ── */
+.tab-bar {
+  display: flex;
+  gap: calc(4px * var(--s));
+  margin-bottom: calc(10px * var(--s));
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: calc(3px * var(--s));
+}
+.tab-btn {
+  flex: 1;
+  padding: calc(6px * var(--s)) calc(4px * var(--s));
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: calc(12px * var(--s));
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.tab-btn.active { background: #fff; color: #1a237e; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+
+/* ── Form elements ── */
+.section-label {
+  font-size: calc(10px * var(--s));
+  font-weight: 700;
+  color: #888;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: calc(4px * var(--s));
+  margin-top: calc(8px * var(--s));
+}
+.fg {
+  margin-bottom: calc(8px * var(--s));
+}
+.fg label {
+  display: block;
+  font-size: calc(10px * var(--s));
+  color: #666;
+  margin-bottom: calc(3px * var(--s));
+  font-weight: 600;
+}
+.fg input, .fg select {
+  width: 100%;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  padding: calc(6px * var(--s)) calc(8px * var(--s));
+  font-size: calc(13px * var(--s));
+  font-family: inherit;
+  color: #222;
+  background: #fafafa;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.fg input:focus, .fg select:focus { border-color: #1a237e; background: #fff; }
+.row2 { display: flex; gap: calc(6px * var(--s)); }
+.row2 .fg { flex: 1; }
+
+/* Param row: select + input inline */
+.param-row { display: flex; gap: calc(6px * var(--s)); margin-bottom: calc(8px * var(--s)); }
+.param-row select {
+  flex: 1.2;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  padding: calc(6px * var(--s)) calc(6px * var(--s));
+  font-size: calc(12px * var(--s));
+  font-family: inherit;
+  background: #fafafa;
+  outline: none;
+  color: #222;
+  transition: border-color 0.15s;
+}
+.param-row input {
+  flex: 1;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  padding: calc(6px * var(--s)) calc(8px * var(--s));
+  font-size: calc(13px * var(--s));
+  font-family: inherit;
+  background: #fafafa;
+  outline: none;
+  color: #222;
+  transition: border-color 0.15s;
+}
+.param-row select:focus, .param-row input:focus { border-color: #1a237e; background: #fff; }
+
+/* Buttons */
+.btn-primary {
+  width: 100%;
+  padding: calc(8px * var(--s));
+  background: #1a237e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: calc(13px * var(--s));
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: calc(4px * var(--s));
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: #283593; }
+.btn-outline {
+  width: 100%;
+  padding: calc(7px * var(--s));
+  background: #fff;
+  color: #1a237e;
+  border: 1.5px solid #1a237e;
+  border-radius: 6px;
+  font-size: calc(12px * var(--s));
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: calc(4px * var(--s));
+  transition: all 0.15s;
+}
+.btn-outline:hover { background: #e8eaf6; }
+
+/* ── Results ── */
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(4px * var(--s));
+  margin-top: calc(8px * var(--s));
+}
+.result-item {
+  background: #f5f7ff;
+  border: 1px solid #e0e3f8;
+  border-radius: 6px;
+  padding: calc(6px * var(--s)) calc(8px * var(--s));
+}
+.result-label {
+  font-size: calc(9px * var(--s));
+  color: #888;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: calc(2px * var(--s));
+}
+.result-value {
+  font-size: calc(14px * var(--s));
+  font-weight: 700;
+  color: #1a237e;
+  line-height: 1.2;
+}
+.result-unit {
+  font-size: calc(9px * var(--s));
+  color: #aaa;
+  margin-top: calc(1px * var(--s));
+}
+
+/* Mix air label */
+.mix-label {
+  font-size: calc(11px * var(--s));
+  font-weight: 700;
+  color: #1a237e;
+  margin-top: calc(10px * var(--s));
+  margin-bottom: calc(4px * var(--s));
+  padding-left: calc(2px * var(--s));
+  border-left: 3px solid #1a237e;
+}
+.mix-label.b { border-color: #e53935; color: #e53935; }
+.mix-label.m { border-color: #2e7d32; color: #2e7d32; }
+
+/* Slider */
+.slider-row { display: flex; align-items: center; gap: calc(8px * var(--s)); margin-bottom: calc(6px * var(--s)); }
+.slider-row input[type=range] {
+  flex: 1;
+  accent-color: #1a237e;
+  height: 4px;
+  cursor: pointer;
+}
+.slider-row span { font-size: calc(11px * var(--s)); color: #555; white-space: nowrap; font-weight: 600; }
+.mix-ratio-inputs { display: flex; gap: calc(6px * var(--s)); align-items: center; margin-bottom: calc(8px * var(--s)); }
+.mix-ratio-inputs label { font-size: calc(11px * var(--s)); color: #555; font-weight: 600; }
+.mix-ratio-inputs input {
+  width: calc(52px * var(--s));
+  border: 1.5px solid #ddd;
+  border-radius: 5px;
+  padding: calc(4px * var(--s)) calc(6px * var(--s));
+  font-size: calc(12px * var(--s));
+  font-family: inherit;
+  text-align: right;
+  background: #fafafa;
+  outline: none;
+}
+.mix-ratio-inputs input:focus { border-color: #1a237e; background: #fff; }
+
+/* ── Canvas area ── */
+.canvas-area {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12px;
+  overflow: auto;
+  background: #eceff1;
+  min-width: 0;
+}
+#chart {
+  display: block;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.15);
+  cursor: crosshair;
+  max-width: 100%;
+}
+
+/* Tooltip */
+#tooltip {
+  position: fixed;
+  background: rgba(26,35,126,0.95);
+  color: #fff;
+  font-size: 11px;
+  font-family: -apple-system, "PingFang TC", sans-serif;
+  padding: 8px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  display: none;
+  z-index: 1000;
+  line-height: 1.6;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+
+/* ── Footer ── */
+.footer {
+  background: #f5f5f5;
+  border-top: 1px solid #ddd;
+  font-size: 12px;
+  color: #666;
+  padding: 6px 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.footer a { color: #1a237e; }
+
+/* ── Tab panels ── */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  body { overflow: auto; height: auto; }
+  .main-layout { flex-direction: column; overflow: visible; }
+  .sidebar { width: 100% !important; max-width: 100%; min-width: 100%; border-right: none; border-bottom: 1px solid #ddd; }
+  .canvas-area { padding: 8px; }
+  #chart { max-width: 100%; height: auto; }
+  .fg input, .fg select, .param-row input, .param-row select {
+    font-size: 16px !important;
+  }
+  .resize-handle { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-title" id="headerTitle">空氣線圖 Psychrometric Chart</div>
+  <button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+</div>
+
+<!-- Main layout -->
+<div class="main-layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-content">
+
+      <!-- Tool nav -->
+      <div class="tool-nav-section">
+        <div class="tool-nav-title" id="navLabel">工具選單</div>
+        <div class="tool-nav-links">
+          <a href="index.html" class="active" id="navChart">空氣線圖</a>
+          <a href="pitot.html" id="navPitot">皮托管量測</a>
+        </div>
+      </div>
+
+      <!-- Tab bar -->
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tabBtn0" onclick="switchTab(0)">線圖</button>
+        <button class="tab-btn" id="tabBtn1" onclick="switchTab(1)">混風</button>
+        <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)">熱負荷</button>
+      </div>
+
+      <!-- ════ 線圖 Tab ════ -->
+      <div class="tab-panel active" id="panel0">
+        <div class="section-label" id="lbl_altitude">高度</div>
+        <div class="fg">
+          <input type="number" id="chart_alt" value="0" placeholder="0" min="0" max="5000">
+        </div>
+
+        <div class="section-label" id="lbl_param1">參數 1</div>
+        <div class="param-row">
+          <select id="chart_p1">
+            <option value="tdb">°C db</option>
+            <option value="twb">°C wb</option>
+            <option value="rh">% RH</option>
+            <option value="h">kJ/kg</option>
+            <option value="dp">°C dp</option>
+            <option value="w">g/kg</option>
+          </select>
+          <input type="number" id="chart_v1" placeholder="25">
+        </div>
+
+        <div class="section-label" id="lbl_param2">參數 2</div>
+        <div class="param-row">
+          <select id="chart_p2">
+            <option value="tdb">°C db</option>
+            <option value="twb">°C wb</option>
+            <option value="rh" selected>% RH</option>
+            <option value="h">kJ/kg</option>
+            <option value="dp">°C dp</option>
+            <option value="w">g/kg</option>
+          </select>
+          <input type="number" id="chart_v2" placeholder="50">
+        </div>
+
+        <button class="btn-primary" onclick="solveChart()" id="btn_calc">計算</button>
+        <button class="btn-outline" onclick="clearChart()" id="btn_clear">清除</button>
+
+        <div id="chart_results" style="display:none">
+          <div class="results-grid" id="chart_results_grid"></div>
+        </div>
+      </div>
+
+      <!-- ════ 混風 Tab ════ -->
+      <div class="tab-panel" id="panel1">
+        <div class="section-label" id="lbl_mix_alt">高度 (m)</div>
+        <div class="fg">
+          <input type="number" id="mix_alt" value="0" placeholder="0" min="0" max="5000">
+        </div>
+
+        <div class="mix-label" id="lbl_airA">氣流 A</div>
+        <div class="param-row">
+          <select id="mix_a_p1">
+            <option value="tdb">°C db</option>
+            <option value="twb">°C wb</option>
+            <option value="rh" selected>% RH</option>
+            <option value="h">kJ/kg</option>
+            <option value="dp">°C dp</option>
+            <option value="w">g/kg</option>
+          </select>
+          <input type="number" id="mix_a_v1" placeholder="v1">
+        </div>
+        <div class="param-row">
+          <select id="mix_a_p2">
+            <option value="tdb" selected>°C db</option>
+            <option value="twb">°C wb</option>
+            <option value="rh">% RH</option>
+            <option value="h">kJ/kg</option>
+            <option value="dp">°C dp</option>
+            <option value="w">g/kg</option>
+          </select>
+          <input type="number" id="mix_a_v2" placeholder="v2">
+        </div>
+        <div class="fg">
+          <label id="lbl_flowA">風量 A (CMH)</label>
+          <input type="number" id="mix_a_cmh" value="1000" min="0">
+        </div>
+
+        <div class="mix-label b" id="lbl_airB">氣流 B</div>
+        <div class="param-row">
+          <select id="mix_b_p1">
+            <option value="tdb">°C db</option>
+            <option value="twb">°C wb</option>
+            <option value="rh" selected>% RH</option>
+            <option value="h">kJ/kg</option>
+            <option value="dp">°C dp</option>
+            <option value="w">g/kg</option>
+          </select>
+          <input type="number" id="mix_b_v1" placeholder="v1">
+        </div>
+        <div class="param-row">
+          <select id="mix_b_p2">
+            <option value="tdb" selected>°C db</option>
+            <option value="twb">°C wb</option>
+            <option value="rh">% RH</option>
+            <option value="h">kJ/kg</option>
+            <option value="dp">°C dp</option>
+            <option value="w">g/kg</option>
+          </select>
+          <input type="number" id="mix_b_v2" placeholder="v2">
+        </div>
+        <div class="fg">
+          <label id="lbl_flowB">風量 B (CMH)</label>
+          <input type="number" id="mix_b_cmh" value="1000" min="0">
+        </div>
+
+        <div class="section-label" id="lbl_mixRatio">混合比例</div>
+        <div class="slider-row">
+          <span>A</span>
+          <input type="range" id="mix_slider" min="0" max="100" value="50" oninput="onMixSlider()">
+          <span>B</span>
+        </div>
+        <div class="mix-ratio-inputs">
+          <label>A:</label>
+          <input type="number" id="mix_ra" value="50" min="0" max="100" oninput="onMixRatioInput('A')">
+          <label>%  B:</label>
+          <input type="number" id="mix_rb" value="50" min="0" max="100" oninput="onMixRatioInput('B')">
+          <label>%</label>
+        </div>
+
+        <button class="btn-primary" onclick="calcMixing()" id="btn_mix">混風計算</button>
+        <button class="btn-outline" onclick="clearMixing()" id="btn_mix_clr">清除</button>
+
+        <div id="mix_results" style="display:none">
+          <div class="mix-label" style="margin-top:10px" id="lbl_resA">結果 A</div>
+          <div class="results-grid" id="mix_res_a"></div>
+          <div class="mix-label b" id="lbl_resB">結果 B</div>
+          <div class="results-grid" id="mix_res_b"></div>
+          <div class="mix-label m" id="lbl_resMix">混合結果</div>
+          <div class="results-grid" id="mix_res_m"></div>
+        </div>
+      </div>
+
+      <!-- ════ 熱負荷 Tab ════ -->
+      <div class="tab-panel" id="panel2">
+        <div class="section-label" id="lbl_hl_alt">高度 (m)</div>
+        <div class="fg">
+          <input type="number" id="hl_alt" value="0" placeholder="0" min="0" max="5000">
+        </div>
+
+        <div class="mix-label" id="lbl_inlet">入口</div>
+        <div class="param-row">
+          <select id="hl_in_p1">
+            <option value="tdb">°C db</option>
+            <option value="twb">°C wb</option>
+            <option value="rh" selected>% RH</option>
+            <option value="h">kJ/kg</option>
+            <option value="dp">°C dp</option>
+            <option value="w">g/kg</option>
+          </select>
+          <input type="number" id="hl_in_v1" placeholder="v1">
+        </div>
+        <div class="param-row">
+          <select id="hl_in_p2">
+            <option value="tdb" selected>°C db</option>
+            <option value="twb">°C wb</option>
+            <option value="rh">% RH</option>
+            <option value="h">kJ/kg</option>
+            <option value="dp">°C dp</option>
+            <option value="w">g/kg</option>
+          </select>
+          <input type="number" id="hl_in_v2" placeholder="v2">
+        </div>
+
+        <div class="mix-label b" id="lbl_outlet">出口</div>
+        <div class="param-row">
+          <select id="hl_out_p1">
+            <option value="tdb">°C db</option>
+            <option value="twb">°C wb</option>
+            <option value="rh" selected>% RH</option>
+            <option value="h">kJ/kg</option>
+            <option value="dp">°C dp</option>
+            <option value="w">g/kg</option>
+          </select>
+          <input type="number" id="hl_out_v1" placeholder="v1">
+        </div>
+        <div class="param-row">
+          <select id="hl_out_p2">
+            <option value="tdb" selected>°C db</option>
+            <option value="twb">°C wb</option>
+            <option value="rh">% RH</option>
+            <option value="h">kJ/kg</option>
+            <option value="dp">°C dp</option>
+            <option value="w">g/kg</option>
+          </select>
+          <input type="number" id="hl_out_v2" placeholder="v2">
+        </div>
+
+        <div class="fg">
+          <label id="lbl_hl_flow">風量 (CMH)</label>
+          <input type="number" id="hl_cmh" value="1000" min="0">
+        </div>
+
+        <button class="btn-primary" onclick="calcHeatLoad()" id="btn_hl">計算熱負荷</button>
+        <button class="btn-outline" onclick="clearHeatLoad()" id="btn_hl_clr">清除</button>
+
+        <div id="hl_results" style="display:none">
+          <div class="results-grid" id="hl_res_grid"></div>
+        </div>
+      </div>
+
+    </div><!-- sidebar-content -->
+    <div class="resize-handle" id="resizeHandle"></div>
+  </div><!-- sidebar -->
+
+  <!-- Canvas area -->
+  <div class="canvas-area">
+    <canvas id="chart" width="1000" height="620"></canvas>
+  </div>
+
+</div><!-- main-layout -->
+
+<!-- Tooltip -->
+<div id="tooltip"></div>
+
+<!-- Footer -->
+<div class="footer">
+  聯絡人：韓先生 | <a href="mailto:S001@focushvac.com.tw">S001@focushvac.com.tw</a>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// Language
+// ═══════════════════════════════════════════════════════════════
+var lang = 'zh';
+var i18n = {
+  zh: {
+    headerTitle: '空氣線圖 Psychrometric Chart',
+    navLabel: '工具選單',
+    navChart: '空氣線圖',
+    navPitot: '皮托管量測',
+    tab0: '線圖', tab1: '混風', tab2: '熱負荷',
+    lbl_altitude: '高度 (m)',
+    lbl_param1: '參數 1', lbl_param2: '參數 2',
+    btn_calc: '計算', btn_clear: '清除',
+    lbl_mix_alt: '高度 (m)',
+    lbl_airA: '氣流 A', lbl_airB: '氣流 B',
+    lbl_flowA: '風量 A (CMH)', lbl_flowB: '風量 B (CMH)',
+    lbl_mixRatio: '混合比例',
+    btn_mix: '混風計算', btn_mix_clr: '清除',
+    lbl_resA: '結果 A', lbl_resB: '結果 B', lbl_resMix: '混合結果',
+    lbl_hl_alt: '高度 (m)',
+    lbl_inlet: '入口', lbl_outlet: '出口',
+    lbl_hl_flow: '風量 (CMH)',
+    btn_hl: '計算熱負荷', btn_hl_clr: '清除',
+  },
+  en: {
+    headerTitle: 'Psychrometric Chart',
+    navLabel: 'Tools',
+    navChart: 'Psych Chart',
+    navPitot: 'Pitot Tube',
+    tab0: 'Chart', tab1: 'Mixing', tab2: 'Heat Load',
+    lbl_altitude: 'Altitude (m)',
+    lbl_param1: 'Param 1', lbl_param2: 'Param 2',
+    btn_calc: 'Calculate', btn_clear: 'Clear',
+    lbl_mix_alt: 'Altitude (m)',
+    lbl_airA: 'Air A', lbl_airB: 'Air B',
+    lbl_flowA: 'Flow A (CMH)', lbl_flowB: 'Flow B (CMH)',
+    lbl_mixRatio: 'Mix Ratio',
+    btn_mix: 'Calculate Mix', btn_mix_clr: 'Clear',
+    lbl_resA: 'Result A', lbl_resB: 'Result B', lbl_resMix: 'Mixed Air',
+    lbl_hl_alt: 'Altitude (m)',
+    lbl_inlet: 'Inlet', lbl_outlet: 'Outlet',
+    lbl_hl_flow: 'Flow (CMH)',
+    btn_hl: 'Calc Heat Load', btn_hl_clr: 'Clear',
+  }
+};
+function toggleLang() {
+  lang = lang === 'zh' ? 'en' : 'zh';
+  document.getElementById('langBtn').textContent = lang === 'zh' ? 'EN' : 'ZH';
+  var t = i18n[lang];
+  for (var k in t) {
+    var el = document.getElementById(k);
+    if (el) el.textContent = t[k];
+  }
+  document.getElementById('headerTitle').textContent = t.headerTitle;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Psychrometric Engine (ASHRAE)
+// ═══════════════════════════════════════════════════════════════
+var Psychro = {
+  pressureFromAlt: function(alt) {
+    return 101.325 * Math.pow(1 - 2.2557e-5 * alt, 5.2559);
+  },
+  satPressure: function(T) {
+    var C8=-5.8002206e3, C9=1.3914993, C10=-4.8640239e-2, C11=4.1764768e-5, C12=-1.4452093e-8, C13=6.5459673;
+    var TK = T + 273.15;
+    return Math.exp(C8/TK + C9 + C10*TK + C11*TK*TK + C12*TK*TK*TK + C13*Math.log(TK)) / 1000;
+  },
+  humidityRatio: function(T, phi, P) {
+    var Pws = this.satPressure(T);
+    var Pw = phi * Pws;
+    return 0.62198 * Pw / (P - Pw);
+  },
+  relHumidity: function(T, W, P) {
+    var Pws = this.satPressure(T);
+    var Pw = P * W / (0.62198 + W);
+    return Pw / Pws;
+  },
+  enthalpy: function(T, W) {
+    return 1.006 * T + W * (2501 + 1.86 * T);
+  },
+  specVolume: function(T, W, P) {
+    return 0.28704 * (T + 273.15) * (1 + W / 0.62198) / P;
+  },
+  vaporPressure: function(W, P) {
+    return P * W / (0.62198 + W);
+  },
+  ppmW: function(W) {
+    return W / (1 + W) * 1e6;
+  },
+  ppmV: function(W, P) {
+    var Pw = this.vaporPressure(W, P);
+    return Pw / P * 1e6;
+  },
+  absHumidity: function(T, W, P) {
+    var v = this.specVolume(T, W, P);
+    return W / v * 1000;
+  },
+  wetBulbW: function(Twb, T, P) {
+    var Wwb = this.humidityRatio(Twb, 1.0, P);
+    return ((2501 - 2.381 * Twb) * Wwb - 1.006 * (T - Twb)) / (2501 + 1.86 * T - 4.186 * Twb);
+  },
+  wetBulbTemp: function(T, W, P) {
+    var lo = -20, hi = T, mid = T;
+    for (var i = 0; i < 60; i++) {
+      mid = (lo + hi) / 2;
+      if (this.wetBulbW(mid, T, P) < W) lo = mid; else hi = mid;
+    }
+    return mid;
+  },
+  dewPoint: function(W, P) {
+    var Pw = this.vaporPressure(W, P);
+    var lo = -60, hi = 80, mid = 0;
+    for (var i = 0; i < 60; i++) {
+      mid = (lo + hi) / 2;
+      if (this.satPressure(mid) < Pw) lo = mid; else hi = mid;
+    }
+    return mid;
+  },
+  solve: function(p1, v1, p2, v2, P) {
+    var T = NaN, W = NaN;
+    if (p1 === 'tdb' || p2 === 'tdb') T = p1 === 'tdb' ? v1 : v2;
+    if (p1 === 'w' || p2 === 'w') W = (p1 === 'w' ? v1 : v2) / 1000;
+    if (p1 === 'rh' || p2 === 'rh') {
+      var phi = (p1 === 'rh' ? v1 : v2) / 100;
+      if (!isNaN(T)) W = this.humidityRatio(T, phi, P);
+    }
+    if (p1 === 'twb' || p2 === 'twb') {
+      var Twb = p1 === 'twb' ? v1 : v2;
+      if (!isNaN(T)) {
+        W = this.wetBulbW(Twb, T, P);
+      } else if (!isNaN(W)) {
+        var lo2 = Twb, hi2 = Twb + 80, m2 = Twb;
+        for (var i = 0; i < 60; i++) {
+          m2 = (lo2 + hi2) / 2;
+          if (this.wetBulbW(Twb, m2, P) < W) hi2 = m2; else lo2 = m2;
+        }
+        T = m2;
+      } else {
+        T = Twb; W = this.humidityRatio(Twb, 1.0, P);
+      }
+    }
+    if (p1 === 'dp' || p2 === 'dp') {
+      var Tdp = p1 === 'dp' ? v1 : v2;
+      var Pw2 = this.satPressure(Tdp);
+      W = 0.62198 * Pw2 / (P - Pw2);
+      if (isNaN(T)) T = Tdp;
+    }
+    if (p1 === 'h' || p2 === 'h') {
+      var h = p1 === 'h' ? v1 : v2;
+      if (!isNaN(T)) W = (h - 1.006 * T) / (2501 + 1.86 * T);
+      else if (!isNaN(W)) T = (h - 2501 * W) / (1.006 + 1.86 * W);
+      else { T = 20; W = (h - 1.006 * T) / (2501 + 1.86 * T); }
+    }
+    if (isNaN(T) || isNaN(W) || W < 0) return null;
+    var phi2 = this.relHumidity(T, W, P);
+    return {
+      tdb: T,
+      twb: this.wetBulbTemp(T, W, P),
+      rh: phi2 * 100,
+      h: this.enthalpy(T, W),
+      dp: this.dewPoint(W, P),
+      w: W * 1000,
+      v: this.specVolume(T, W, P),
+      vp: this.vaporPressure(W, P),
+      ppmw: this.ppmW(W),
+      ppmv: this.ppmV(W, P),
+      abs: this.absHumidity(T, W, P)
+    };
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// Chart Drawing
+// ═══════════════════════════════════════════════════════════════
+var canvas = document.getElementById('chart');
+var ctx = canvas.getContext('2d');
+
+// Plot area
+var CL = 70, CT = 30, CR = 970, CB = 590;
+var TMIN = -10, TMAX = 60;
+var WMIN = 0, WMAX = 0.050;
+
+function T2x(T) { return CL + (T - TMIN) / (TMAX - TMIN) * (CR - CL); }
+function W2y(W) { return CB - (W - WMIN) / (WMAX - WMIN) * (CB - CT); }
+function x2T(x) { return TMIN + (x - CL) / (CR - CL) * (TMAX - TMIN); }
+function y2W(y) { return WMIN + (CB - y) / (CB - CT) * (WMAX - WMIN); }
+
+// Points stored
+var chartPoints = [];
+var mixPoints = { a: null, b: null, m: null };
+var processPoints = { inlet: null, outlet: null };
+
+function redraw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawBackground();
+  drawGrid();
+  drawSpecVolLines();
+  drawEnthalpyLines();
+  drawWetBulbLines();
+  drawRHLines();
+  drawSatCurve();
+  drawAxes();
+  drawActiveTab();
+}
+
+function drawBackground() {
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Below saturation fill
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(CL, CB);
+  var P = 101.325;
+  for (var T = TMIN; T <= TMAX + 0.5; T += 0.5) {
+    var Ws = Psychro.humidityRatio(T, 1.0, P);
+    if (Ws < WMIN) Ws = WMIN;
+    if (Ws > WMAX) Ws = WMAX;
+    ctx.lineTo(T2x(T), W2y(Ws));
+  }
+  ctx.lineTo(CR, CB);
+  ctx.closePath();
+  ctx.fillStyle = '#f0f4ff';
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawGrid() {
+  ctx.strokeStyle = '#e0e0e0';
+  ctx.lineWidth = 0.5;
+  // T gridlines
+  for (var T = Math.ceil(TMIN / 5) * 5; T <= TMAX; T += 5) {
+    ctx.beginPath();
+    ctx.moveTo(T2x(T), CT);
+    ctx.lineTo(T2x(T), CB);
+    ctx.stroke();
+  }
+  // W gridlines
+  for (var W = 0; W <= WMAX + 0.0001; W += 0.005) {
+    ctx.beginPath();
+    ctx.moveTo(CL, W2y(W));
+    ctx.lineTo(CR, W2y(W));
+    ctx.stroke();
+  }
+}
+
+function drawSpecVolLines() {
+  ctx.strokeStyle = 'rgba(100,120,200,0.35)';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([3, 5]);
+  var P = 101.325;
+  var vLevels = [0.75, 0.80, 0.85, 0.90, 0.95, 1.00];
+  for (var vi = 0; vi < vLevels.length; vi++) {
+    var vt = vLevels[vi];
+    ctx.beginPath();
+    var first = true;
+    for (var T = TMIN; T <= TMAX + 0.5; T += 1) {
+      // v = 0.28704*(T+273.15)*(1+W/0.62198)/P => W = 0.62198*(v*P/(0.28704*(T+273.15)) - 1)
+      var W2 = 0.62198 * (vt * P / (0.28704 * (T + 273.15)) - 1);
+      if (W2 < WMIN - 0.002 || W2 > WMAX + 0.002) continue;
+      W2 = Math.max(WMIN, Math.min(WMAX, W2));
+      var x = T2x(T), y = W2y(W2);
+      if (first) { ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    // Label
+    var T_label = 40;
+    var W_lbl = 0.62198 * (vt * P / (0.28704 * (T_label + 273.15)) - 1);
+    if (W_lbl >= WMIN && W_lbl <= WMAX) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(80,100,180,0.7)';
+      ctx.font = '9px sans-serif';
+      ctx.fillText(vt.toFixed(2), T2x(T_label) + 2, W2y(W_lbl) - 2);
+      ctx.restore();
+    }
+  }
+  ctx.setLineDash([]);
+}
+
+function drawEnthalpyLines() {
+  ctx.strokeStyle = 'rgba(200,120,60,0.3)';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([6, 4]);
+  var P = 101.325;
+  for (var h = -10; h <= 130; h += 10) {
+    ctx.beginPath();
+    var first = true;
+    for (var T = TMIN; T <= TMAX + 0.5; T += 1) {
+      var W2 = (h - 1.006 * T) / (2501 + 1.86 * T);
+      if (W2 < WMIN - 0.001 || W2 > WMAX + 0.001) continue;
+      W2 = Math.max(WMIN, Math.min(WMAX, W2));
+      if (first) { ctx.moveTo(T2x(T), W2y(W2)); first = false; } else ctx.lineTo(T2x(T), W2y(W2));
+    }
+    ctx.stroke();
+    // Label near left
+    var Wl = (h - 1.006 * TMIN) / (2501 + 1.86 * TMIN);
+    if (Wl >= WMIN && Wl <= WMAX) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(180,100,40,0.7)';
+      ctx.font = '9px sans-serif';
+      ctx.fillText(h + ' kJ', T2x(TMIN) + 2, W2y(Wl) - 2);
+      ctx.restore();
+    }
+  }
+  ctx.setLineDash([]);
+}
+
+function drawWetBulbLines() {
+  ctx.strokeStyle = 'rgba(0,160,130,0.25)';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([4, 6]);
+  var P = 101.325;
+  for (var Twb = -5; Twb <= 35; Twb += 5) {
+    ctx.beginPath();
+    var first = true;
+    for (var T = Twb; T <= TMAX + 0.5; T += 1) {
+      var W2 = Psychro.wetBulbW(Twb, T, P);
+      if (W2 < WMIN - 0.001 || W2 > WMAX + 0.001) continue;
+      W2 = Math.max(WMIN, Math.min(WMAX, W2));
+      if (first) { ctx.moveTo(T2x(T), W2y(W2)); first = false; } else ctx.lineTo(T2x(T), W2y(W2));
+    }
+    ctx.stroke();
+    // Label on sat curve
+    var Wsat = Psychro.humidityRatio(Twb, 1.0, P);
+    if (Wsat >= WMIN && Wsat <= WMAX && Twb >= TMIN) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,130,110,0.7)';
+      ctx.font = '8px sans-serif';
+      ctx.fillText(Twb + '°', T2x(Twb) - 2, W2y(Wsat) - 4);
+      ctx.restore();
+    }
+  }
+  ctx.setLineDash([]);
+}
+
+function drawRHLines() {
+  var P = 101.325;
+  for (var phi = 0.1; phi <= 0.91; phi += 0.1) {
+    ctx.beginPath();
+    ctx.strokeStyle = phi >= 0.99 ? 'rgba(0,0,0,0)' : 'rgba(30,80,160,0.4)';
+    ctx.lineWidth = phi === 0.5 ? 1.2 : 0.8;
+    var first = true;
+    for (var T = TMIN; T <= TMAX + 0.2; T += 0.5) {
+      var W2 = Psychro.humidityRatio(T, phi, P);
+      if (W2 < WMIN - 0.001 || W2 > WMAX + 0.001) continue;
+      W2 = Math.max(WMIN, Math.min(WMAX, W2));
+      if (first) { ctx.moveTo(T2x(T), W2y(W2)); first = false; } else ctx.lineTo(T2x(T), W2y(W2));
+    }
+    ctx.stroke();
+    // Label
+    var phiLabel = Math.round(phi * 100);
+    var Tlabel = 5 + phi * 15;
+    var Wlbl = Psychro.humidityRatio(Tlabel, phi, P);
+    if (Wlbl >= WMIN + 0.001 && Wlbl <= WMAX - 0.001) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(30,80,160,0.65)';
+      ctx.font = '9px sans-serif';
+      ctx.fillText(phiLabel + '%', T2x(Tlabel) - 8, W2y(Wlbl) - 2);
+      ctx.restore();
+    }
+  }
+}
+
+function drawSatCurve() {
+  var P = 101.325;
+  ctx.beginPath();
+  ctx.strokeStyle = '#1b5e20';
+  ctx.lineWidth = 2.5;
+  var first = true;
+  for (var T = TMIN; T <= TMAX + 0.1; T += 0.25) {
+    var W2 = Psychro.humidityRatio(T, 1.0, P);
+    if (W2 > WMAX + 0.001) continue;
+    if (W2 < WMIN) W2 = WMIN;
+    if (first) { ctx.moveTo(T2x(T), W2y(W2)); first = false; } else ctx.lineTo(T2x(T), W2y(W2));
+  }
+  ctx.stroke();
+}
+
+function drawAxes() {
+  // Axes box
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(CL, CT);
+  ctx.lineTo(CL, CB);
+  ctx.lineTo(CR, CB);
+  ctx.stroke();
+
+  ctx.font = '11px sans-serif';
+  ctx.fillStyle = '#333';
+
+  // X axis ticks & labels (temperature)
+  for (var T = Math.ceil(TMIN / 5) * 5; T <= TMAX; T += 5) {
+    var x = T2x(T);
+    ctx.beginPath(); ctx.moveTo(x, CB); ctx.lineTo(x, CB + 5); ctx.stroke();
+    ctx.textAlign = 'center';
+    ctx.fillText(T + '°C', x, CB + 16);
+  }
+  // X axis title
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.fillText('Dry Bulb Temperature (°C)', (CL + CR) / 2, CB + 28);
+
+  // Y axis ticks & labels (humidity ratio)
+  ctx.textAlign = 'right';
+  ctx.font = '11px sans-serif';
+  for (var W = 0; W <= WMAX + 0.0001; W += 0.005) {
+    var y = W2y(W);
+    ctx.beginPath(); ctx.moveTo(CL, y); ctx.lineTo(CL - 5, y); ctx.stroke();
+    ctx.fillText((W * 1000).toFixed(0), CL - 7, y + 4);
+  }
+  // Y axis title
+  ctx.save();
+  ctx.translate(14, (CT + CB) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.fillText('Humidity Ratio (g/kg)', 0, 0);
+  ctx.restore();
+}
+
+function drawActiveTab() {
+  if (activeTab === 0) {
+    drawChartPoints();
+  } else if (activeTab === 1) {
+    drawMixPoints();
+  } else if (activeTab === 2) {
+    drawProcessPoints();
+  }
+}
+
+function drawChartPoints() {
+  for (var i = 0; i < chartPoints.length; i++) {
+    var pt = chartPoints[i];
+    drawPoint(pt.tdb, pt.w / 1000, '#e53935', i + 1);
+  }
+}
+
+function drawMixPoints() {
+  if (mixPoints.a) { drawPoint(mixPoints.a.tdb, mixPoints.a.w / 1000, '#1a237e', 'A'); }
+  if (mixPoints.b) { drawPoint(mixPoints.b.tdb, mixPoints.b.w / 1000, '#e53935', 'B'); }
+  if (mixPoints.m) {
+    drawPoint(mixPoints.m.tdb, mixPoints.m.w / 1000, '#2e7d32', 'M');
+    // connecting line
+    if (mixPoints.a && mixPoints.b) {
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(100,100,100,0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 3]);
+      ctx.moveTo(T2x(mixPoints.a.tdb), W2y(mixPoints.a.w / 1000));
+      ctx.lineTo(T2x(mixPoints.b.tdb), W2y(mixPoints.b.w / 1000));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+}
+
+function drawProcessPoints() {
+  if (processPoints.inlet) drawPoint(processPoints.inlet.tdb, processPoints.inlet.w / 1000, '#1565c0', 'IN');
+  if (processPoints.outlet) drawPoint(processPoints.outlet.tdb, processPoints.outlet.w / 1000, '#c62828', 'OUT');
+  if (processPoints.inlet && processPoints.outlet) {
+    var x1 = T2x(processPoints.inlet.tdb), y1 = W2y(processPoints.inlet.w / 1000);
+    var x2 = T2x(processPoints.outlet.tdb), y2 = W2y(processPoints.outlet.w / 1000);
+    ctx.beginPath();
+    ctx.strokeStyle = '#1565c0';
+    ctx.lineWidth = 2;
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    // Arrow
+    var angle = Math.atan2(y2 - y1, x2 - x1);
+    var mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    ctx.beginPath();
+    ctx.moveTo(mx, my);
+    ctx.lineTo(mx - 10 * Math.cos(angle - 0.4), my - 10 * Math.sin(angle - 0.4));
+    ctx.lineTo(mx - 10 * Math.cos(angle + 0.4), my - 10 * Math.sin(angle + 0.4));
+    ctx.closePath();
+    ctx.fillStyle = '#1565c0';
+    ctx.fill();
+  }
+}
+
+function drawPoint(T, W, color, label) {
+  var x = T2x(T), y = W2y(W);
+  // Halo
+  ctx.beginPath();
+  ctx.arc(x, y, 9, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.fill();
+  // Point
+  ctx.beginPath();
+  ctx.arc(x, y, 6, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // Label
+  ctx.font = 'bold 10px sans-serif';
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.fillText(String(label), x, y - 12);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Tab management
+// ═══════════════════════════════════════════════════════════════
+var activeTab = 0;
+function switchTab(n) {
+  activeTab = n;
+  for (var i = 0; i < 3; i++) {
+    document.getElementById('panel' + i).classList.toggle('active', i === n);
+    document.getElementById('tabBtn' + i).classList.toggle('active', i === n);
+  }
+  redraw();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 線圖 Tab Functions
+// ═══════════════════════════════════════════════════════════════
+function getP(altId) {
+  var alt = parseFloat(document.getElementById(altId).value) || 0;
+  return Psychro.pressureFromAlt(alt);
+}
+
+function renderResults(containerId, st) {
+  var labels = {
+    tdb: ['°C db', '乾球'], twb: ['°C wb', '濕球'],
+    rh: ['% RH', '相對濕度'], h: ['kJ/kg', '焓'],
+    dp: ['°C dp', '露點'], w: ['g/kg', '含濕量'],
+    v: ['m³/kg', '比容'], vp: ['kPa VP', '蒸氣壓'],
+    ppmw: ['PPMw', 'PPMw'], ppmv: ['PPMv', 'PPMv'],
+    abs: ['g/m³', '絕對濕度']
+  };
+  var order = ['tdb','twb','rh','h','dp','w','v','vp','ppmw','ppmv','abs'];
+  var html = '';
+  for (var i = 0; i < order.length; i++) {
+    var k = order[i];
+    var lbl = lang === 'zh' ? labels[k][1] : labels[k][0];
+    var val = st[k];
+    var fmt = (k === 'ppmw' || k === 'ppmv') ? val.toFixed(0) :
+              (k === 'vp') ? val.toFixed(4) : val.toFixed(2);
+    html += '<div class="result-item"><div class="result-label">' + lbl + '</div>'
+          + '<div class="result-value">' + fmt + '</div>'
+          + '<div class="result-unit">' + labels[k][0] + '</div></div>';
+  }
+  document.getElementById(containerId).innerHTML = html;
+}
+
+function solveChart() {
+  var P = getP('chart_alt');
+  var p1 = document.getElementById('chart_p1').value;
+  var v1 = parseFloat(document.getElementById('chart_v1').value);
+  var p2 = document.getElementById('chart_p2').value;
+  var v2 = parseFloat(document.getElementById('chart_v2').value);
+  if (isNaN(v1) || isNaN(v2)) { alert(lang === 'zh' ? '請輸入數值' : 'Please enter values'); return; }
+  var st = Psychro.solve(p1, v1, p2, v2, P);
+  if (!st) { alert(lang === 'zh' ? '無法計算，請檢查輸入' : 'Cannot compute, check inputs'); return; }
+  chartPoints.push(st);
+  renderResults('chart_results_grid', st);
+  document.getElementById('chart_results').style.display = '';
+  redraw();
+}
+
+function clearChart() {
+  chartPoints = [];
+  document.getElementById('chart_results').style.display = 'none';
+  redraw();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 混風 Tab Functions
+// ═══════════════════════════════════════════════════════════════
+var _skipRatioSync = false;
+
+function onMixSlider() {
+  var val = parseInt(document.getElementById('mix_slider').value);
+  _skipRatioSync = true;
+  document.getElementById('mix_ra').value = val;
+  document.getElementById('mix_rb').value = 100 - val;
+  _skipRatioSync = false;
+}
+
+function onMixRatioInput(src) {
+  if (_skipRatioSync) return;
+  _skipRatioSync = true;
+  if (src === 'A') {
+    var a = parseFloat(document.getElementById('mix_ra').value);
+    if (!isNaN(a)) {
+      a = Math.max(0, Math.min(100, a));
+      document.getElementById('mix_rb').value = (100 - a).toFixed(0);
+      document.getElementById('mix_slider').value = a;
+    }
+  } else {
+    var b = parseFloat(document.getElementById('mix_rb').value);
+    if (!isNaN(b)) {
+      b = Math.max(0, Math.min(100, b));
+      document.getElementById('mix_ra').value = (100 - b).toFixed(0);
+      document.getElementById('mix_slider').value = 100 - b;
+    }
+  }
+  _skipRatioSync = false;
+}
+
+function calcMixing() {
+  var P = getP('mix_alt');
+  var stA = Psychro.solve(
+    document.getElementById('mix_a_p1').value, parseFloat(document.getElementById('mix_a_v1').value),
+    document.getElementById('mix_a_p2').value, parseFloat(document.getElementById('mix_a_v2').value), P
+  );
+  var stB = Psychro.solve(
+    document.getElementById('mix_b_p1').value, parseFloat(document.getElementById('mix_b_v1').value),
+    document.getElementById('mix_b_p2').value, parseFloat(document.getElementById('mix_b_v2').value), P
+  );
+  if (!stA || !stB) { alert(lang === 'zh' ? '無法計算，請檢查輸入' : 'Check inputs'); return; }
+
+  var cmhA = parseFloat(document.getElementById('mix_a_cmh').value) || 1000;
+  var cmhB = parseFloat(document.getElementById('mix_b_cmh').value) || 1000;
+  var rA = parseFloat(document.getElementById('mix_ra').value);
+  if (!isNaN(rA)) {
+    var total = cmhA + cmhB;
+    if (total > 0) {
+      var fracA = rA / 100;
+      // Adjust CMH based on ratio
+    }
+  }
+  // Mass flow mixing
+  var vA = Psychro.specVolume(stA.tdb, stA.w / 1000, P);
+  var vB = Psychro.specVolume(stB.tdb, stB.w / 1000, P);
+  var mA = cmhA / (vA * 3600); // kg/s
+  var mB = cmhB / (vB * 3600);
+  var mTotal = mA + mB;
+  if (mTotal <= 0) { alert(lang === 'zh' ? '風量不能為零' : 'Flow cannot be zero'); return; }
+  // Override ratio
+  var ra = parseFloat(document.getElementById('mix_ra').value);
+  if (!isNaN(ra)) {
+    mA = mTotal * (ra / 100);
+    mB = mTotal * ((100 - ra) / 100);
+  }
+  var Wm = (mA * stA.w / 1000 + mB * stB.w / 1000) / mTotal;
+  var hm = (mA * stA.h + mB * stB.h) / mTotal;
+  var Tm = (hm - 2501 * Wm) / (1.006 + 1.86 * Wm);
+  var stM = Psychro.solve('tdb', Tm, 'w', Wm * 1000, P);
+  if (!stM) stM = Psychro.solve('h', hm, 'w', Wm * 1000, P);
+
+  mixPoints.a = stA; mixPoints.b = stB; mixPoints.m = stM;
+  renderResults('mix_res_a', stA);
+  renderResults('mix_res_b', stB);
+  if (stM) renderResults('mix_res_m', stM);
+  document.getElementById('mix_results').style.display = '';
+  redraw();
+}
+
+function clearMixing() {
+  mixPoints = { a: null, b: null, m: null };
+  document.getElementById('mix_results').style.display = 'none';
+  redraw();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 熱負荷 Tab Functions
+// ═══════════════════════════════════════════════════════════════
+function calcHeatLoad() {
+  var P = getP('hl_alt');
+  var stIn = Psychro.solve(
+    document.getElementById('hl_in_p1').value, parseFloat(document.getElementById('hl_in_v1').value),
+    document.getElementById('hl_in_p2').value, parseFloat(document.getElementById('hl_in_v2').value), P
+  );
+  var stOut = Psychro.solve(
+    document.getElementById('hl_out_p1').value, parseFloat(document.getElementById('hl_out_v1').value),
+    document.getElementById('hl_out_p2').value, parseFloat(document.getElementById('hl_out_v2').value), P
+  );
+  if (!stIn || !stOut) { alert(lang === 'zh' ? '無法計算，請檢查輸入' : 'Check inputs'); return; }
+  var cmh = parseFloat(document.getElementById('hl_cmh').value) || 0;
+  var v_in = Psychro.specVolume(stIn.tdb, stIn.w / 1000, P);
+  var massFlow = cmh / (v_in * 3600); // kg/s
+  var Qtotal = massFlow * (stOut.h - stIn.h); // kW
+  var Qsensible = massFlow * 1.006 * (stOut.tdb - stIn.tdb);
+  var Qlatent = massFlow * 2501 * (stOut.w / 1000 - stIn.w / 1000);
+  var moistureLoad = massFlow * (stOut.w / 1000 - stIn.w / 1000) * 3600; // kg/hr
+
+  processPoints.inlet = stIn; processPoints.outlet = stOut;
+  var labels = lang === 'zh' ?
+    ['總熱量', '顯熱', '潛熱', '水分負荷'] :
+    ['Total Heat', 'Sensible Heat', 'Latent Heat', 'Moisture Load'];
+  var units = ['kW', 'kW', 'kW', 'kg/hr'];
+  var vals2 = [Qtotal, Qsensible, Qlatent, moistureLoad];
+  var html = '';
+  for (var i = 0; i < 4; i++) {
+    html += '<div class="result-item"><div class="result-label">' + labels[i] + '</div>'
+          + '<div class="result-value">' + vals2[i].toFixed(2) + '</div>'
+          + '<div class="result-unit">' + units[i] + '</div></div>';
+  }
+  document.getElementById('hl_res_grid').innerHTML = html;
+  document.getElementById('hl_results').style.display = '';
+  redraw();
+}
+
+function clearHeatLoad() {
+  processPoints = { inlet: null, outlet: null };
+  document.getElementById('hl_results').style.display = 'none';
+  redraw();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Tooltip / mouse hover
+// ═══════════════════════════════════════════════════════════════
+var tooltip = document.getElementById('tooltip');
+
+function getCanvasPos(e) {
+  var rect = canvas.getBoundingClientRect();
+  var scaleX = canvas.width / rect.width;
+  var scaleY = canvas.height / rect.height;
+  var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return {
+    x: (clientX - rect.left) * scaleX,
+    y: (clientY - rect.top) * scaleY,
+    clientX: clientX,
+    clientY: clientY
+  };
+}
+
+canvas.addEventListener('mousemove', function(e) {
+  var pos = getCanvasPos(e);
+  if (pos.x < CL || pos.x > CR || pos.y < CT || pos.y > CB) {
+    tooltip.style.display = 'none';
+    return;
+  }
+  var T = x2T(pos.x);
+  var W = y2W(pos.y);
+  if (T < TMIN || T > TMAX || W < WMIN || W > WMAX) { tooltip.style.display = 'none'; return; }
+  var P = 101.325;
+  var st = Psychro.solve('tdb', T, 'w', W * 1000, P);
+  if (!st || st.rh > 105) { tooltip.style.display = 'none'; return; }
+  var lines = [
+    'Tdb: ' + st.tdb.toFixed(1) + ' °C    Twb: ' + st.twb.toFixed(1) + ' °C',
+    'RH: ' + st.rh.toFixed(1) + '%    h: ' + st.h.toFixed(1) + ' kJ/kg',
+    'W: ' + st.w.toFixed(2) + ' g/kg    Tdp: ' + st.dp.toFixed(1) + ' °C',
+    'v: ' + st.v.toFixed(4) + ' m³/kg    Pv: ' + st.vp.toFixed(4) + ' kPa'
+  ];
+  tooltip.innerHTML = lines.join('<br>');
+  var tx = pos.clientX + 14, ty = pos.clientY - 10;
+  if (tx + 240 > window.innerWidth) tx = pos.clientX - 250;
+  tooltip.style.left = tx + 'px';
+  tooltip.style.top = ty + 'px';
+  tooltip.style.display = 'block';
+});
+
+canvas.addEventListener('mouseleave', function() {
+  tooltip.style.display = 'none';
+});
+
+canvas.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+  var pos = getCanvasPos(e);
+  var T = x2T(pos.x), W = y2W(pos.y);
+  if (T < TMIN || T > TMAX || W < WMIN || W > WMAX) { tooltip.style.display = 'none'; return; }
+  var P = 101.325;
+  var st = Psychro.solve('tdb', T, 'w', W * 1000, P);
+  if (!st || st.rh > 105) { tooltip.style.display = 'none'; return; }
+  tooltip.innerHTML = 'Tdb: ' + st.tdb.toFixed(1) + '°C  RH: ' + st.rh.toFixed(0) + '%<br>'
+                    + 'h: ' + st.h.toFixed(1) + ' kJ/kg  W: ' + st.w.toFixed(2) + ' g/kg';
+  tooltip.style.left = (pos.clientX + 10) + 'px';
+  tooltip.style.top = (pos.clientY - 50) + 'px';
+  tooltip.style.display = 'block';
+}, { passive: false });
+
+canvas.addEventListener('touchend', function() {
+  setTimeout(function() { tooltip.style.display = 'none'; }, 1500);
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Sidebar resize
+// ═══════════════════════════════════════════════════════════════
+var resizing = false;
+var resizeHandle = document.getElementById('resizeHandle');
+var sidebar = document.getElementById('sidebar');
+
+resizeHandle.addEventListener('mousedown', function(e) {
+  resizing = true;
+  e.preventDefault();
+});
+document.addEventListener('mousemove', function(e) {
+  if (!resizing) return;
+  var rect = document.querySelector('.main-layout').getBoundingClientRect();
+  var newW = Math.max(280, Math.min(600, e.clientX - rect.left));
+  sidebar.style.width = newW + 'px';
+  document.documentElement.style.setProperty('--sidebar-w', newW + 'px');
+  document.documentElement.style.setProperty('--s', newW / 360);
+});
+document.addEventListener('mouseup', function() {
+  resizing = false;
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Init
+// ═══════════════════════════════════════════════════════════════
+redraw();
+</script>
+</body>
+</html>
