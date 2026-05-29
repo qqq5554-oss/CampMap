@@ -518,6 +518,15 @@ body {
   /* Show hidden sections */
   #heatSection, #fqSection { display: block !important; }
 
+  /* Reorder: banner(1) → diag+heat(2) → res+fq(3) → sum(4) → sig(5) */
+  #pdfBanner    { order: 1; }
+  #diagSection  { order: 2; }
+  #heatSection  { order: 3; }
+  #resSection   { order: 4; }
+  #fqSection    { order: 5; }
+  #sumSection   { order: 6; }
+  #pdfSignature { order: 7; }
+
   /* Signature + summary full width */
   #sumSection   { width: 100%; display: block !important; border: 1px solid #ccc; border-radius: 3px; }
   #pdfSignature { display: block !important; width: 100%; margin-top: 10px; }
