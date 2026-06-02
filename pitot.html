@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-TW"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="皮托管量測">
@@ -198,6 +198,7 @@ body {
   -webkit-overflow-scrolling: touch;
   padding: 14px;
   background: #fdf8f8;
+  touch-action: pan-x pan-y;
 }
 .svg-scroll svg { display: block; }
 
@@ -485,6 +486,7 @@ body {
     color: #333;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   .np:active { background: #f0e0e0; }
   .np-fn { color: #8C1515; background: #fff3f0; }
