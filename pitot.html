@@ -804,6 +804,10 @@ body {
       </div>
     </div>
 
+    <div class="fg">
+      <label>PDF 匯出檔名</label>
+      <input type="text" id="pdfFileName" placeholder="例：B1F-MAU-01 量測報告">
+    </div>
     <button class="gen-btn" onclick="generate()">⚡ 產生量測圖</button>
   </div>
 </div>
@@ -1588,8 +1592,14 @@ function exportPDF() {
     img.src = srcImg.src;
     logoEl.appendChild(img);
   }
+  var origTitle = document.title;
+  var fn = document.getElementById('pdfFileName').value.trim();
+  if (fn) document.title = fn;
   window.print();
-  setTimeout(function() { document.getElementById('pdfBanner').style.display = 'none'; }, 2000);
+  setTimeout(function() {
+    document.getElementById('pdfBanner').style.display = 'none';
+    document.title = origTitle;
+  }, 2000);
 }
 
 // ── Clear all ──────────────────────────────────────────────────
