@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>冰水主機熱平衡計算工具</title>
+<style>
+  :root{
+    --ink:#1c2422;
+    --paper:#f1eee6;
+    --steel:#3a5a6c;
+    --steel-dark:#26404e;
+    --cold:#2f6f8f;
+    --hot:#b5562f;
+    --line:#c9c2b2;
+    --ok:#3d6b4f;
+    --warn:#a4451f;
+    --mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system, "PingFang TC", "Noto Sans TC", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:0 0 60px;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 18px;}
+
+  .tool-nav{background:#6B0F0F;padding:6px 16px;display:flex;gap:14px;flex-wrap:wrap;}
+  .tool-nav a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:13px;padding:4px 8px;border-radius:4px;white-space:nowrap;}
+  .tool-nav a:hover{color:#fff;background:rgba(255,255,255,0.1);}
+  .tool-nav a.active{color:#fff;background:rgba(255,255,255,0.15);font-weight:600;}
+
+  header{
+    background:var(--steel-dark);
+    color:#f1eee6;
+    padding:28px 18px 22px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute;
+    right:-40px;top:-40px;
+    width:160px;height:160px;
+    border:18px solid rgba(241,238,230,0.07);
+    border-radius:50%;
+  }
+  header .wrap{position:relative;z-index:1;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.12em;
+    color:#9fb8c4;
+    text-transform:uppercase;
+    margin:0 0 6px;
+  }
+  h1{font-size:21px;margin:0 0 4px;font-weight:700;letter-spacing:0.01em;}
+  .sub{font-size:13px;color:#cdd8d4;margin:0;line-height:1.5;}
+
+  .card{
+    background:#fffdf8;
+    border:1px solid var(--line);
+    border-radius:10px;
+    margin-top:18px;
+    padding:18px 18px 20px;
+  }
+  .card h2{
+    font-size:13px;margin:0 0 4px;color:var(--steel-dark);font-weight:700;
+    letter-spacing:0.04em;display:flex;align-items:center;gap:8px;
+  }
+  .card h2 .num{
+    font-family:var(--mono);font-size:11px;color:#fff;width:18px;height:18px;
+    border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .card.evap h2 .num{background:var(--cold);}
+  .card.cond h2 .num{background:var(--hot);}
+  .card.power h2 .num{background:var(--steel-dark);}
+  .card-sub{font-size:11.5px;color:#9a9384;margin:0 0 14px;}
+
+  .row2{display:flex;gap:10px;}
+  .field{margin-bottom:12px;flex:1;}
+  .field label{display:block;font-size:12.5px;color:#5c564a;margin-bottom:5px;font-weight:600;}
+  .inputrow{position:relative;}
+  input[type=number], input[type=text], input[type=date]{
+    width:100%;font-size:15px;font-family:var(--mono);
+    padding:10px 11px;border:1.5px solid var(--line);
+    border-radius:8px;background:#fff;color:var(--ink);-webkit-appearance:none;
+  }
+  input[type=number]{font-size:17px;padding-right:46px;}
+  input[type=number]:focus, input[type=text]:focus, input[type=date]:focus{outline:none;border-color:var(--steel);}
+  .unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12.5px;color:#9a9384;font-family:var(--mono);}
+
+  .toggle{display:flex;background:#eae5d8;border-radius:8px;padding:3px;margin-bottom:14px;}
+  .toggle button{
+    flex:1;border:none;background:transparent;padding:8px 6px;font-size:12.5px;
+    border-radius:6px;color:#6b6356;font-family:inherit;font-weight:600;cursor:pointer;
+  }
+  .toggle button.active{background:var(--steel-dark);color:#fff;}
+
+  .deltaT{
+    font-size:12px;font-family:var(--mono);color:#857d6c;
+    text-align:right;margin-top:-4px;margin-bottom:6px;
+  }
+  .deltaT b{color:var(--ink);}
+
+  .formula{
+    font-size:11.5px;font-family:var(--mono);color:#6b6356;
+    background:#f4f1e8;border:1px solid var(--line);border-radius:7px;
+    padding:8px 10px;margin-bottom:10px;line-height:1.6;word-break:break-all;
+  }
+  .formula .fname{color:#9a9384;display:block;font-size:10px;letter-spacing:0.04em;margin-bottom:2px;text-transform:uppercase;}
+  .formula b{color:var(--steel-dark);}
+
+  /* power rows */
+  #power-rows .prow{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+  #power-rows .prow input{flex:1;}
+  #power-rows .prow .rm{
+    flex:0 0 auto;width:32px;height:32px;border-radius:7px;border:1px solid var(--line);
+    background:#fff;color:var(--warn);font-size:16px;line-height:1;cursor:pointer;
+  }
+  .addbtn{
+    width:100%;padding:9px;border-radius:8px;border:1.5px dashed var(--line);
+    background:transparent;color:var(--steel-dark);font-weight:700;font-size:13px;
+    cursor:pointer;margin-top:2px;
+  }
+  .ptotal{font-size:12px;color:#857d6c;text-align:right;margin-top:8px;font-family:var(--mono);}
+
+  /* result */
+  .result-main{background:var(--steel-dark);border-radius:10px;padding:20px 18px;color:#fff;}
+  .balance-num{text-align:center;}
+  .balance-num .label{font-size:11px;letter-spacing:0.1em;color:#9fb8c4;font-family:var(--mono);text-transform:uppercase;margin-bottom:6px;}
+  .balance-num .pct{font-size:40px;font-weight:800;line-height:1;}
+  .confidence{margin-top:10px;display:inline-block;font-size:11.5px;padding:4px 12px;border-radius:20px;font-weight:700;}
+  .confidence.good{background:#defbe6;color:var(--ok);}
+  .confidence.warn{background:#fde8db;color:var(--warn);}
+
+  .breakdown{display:flex;gap:8px;margin-top:16px;}
+  .bitem{flex:1;border:1.5px solid var(--line);border-radius:8px;padding:10px 8px;background:#fff;text-align:center;}
+  .bitem .t{font-size:10.5px;color:#9a9384;font-family:var(--mono);margin-bottom:3px;}
+  .bitem .v{font-size:16px;font-weight:700;color:var(--steel-dark);}
+  .bitem .v2{font-size:10px;color:#9a9384;font-family:var(--mono);margin-top:2px;}
+
+  .formula.on-dark{
+    background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);color:#cdd8d4;
+  }
+  .formula.on-dark .fname{color:#9fb8c4;}
+  .formula.on-dark b{color:#fff;}
+
+  .note{font-size:12px;color:#857d6c;line-height:1.6;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);}
+  .placeholder{text-align:center;padding:30px 10px;color:#9a9384;font-size:13px;}
+
+  .exportbtn{
+    width:100%;margin-top:12px;padding:13px;border-radius:9px;border:none;
+    background:var(--rust,#b5562f);background:linear-gradient(135deg,#b5562f,#a4451f);
+    color:#fff;font-weight:700;font-size:14.5px;letter-spacing:0.02em;cursor:pointer;
+  }
+  .exportbtn:active{opacity:0.85;}
+</style>
+</head>
+<body>
+
+<nav class="tool-nav">
+  <a href="index.html">空氣線圖</a>
+  <a href="pitot.html">皮托管量測</a>
+  <a href="gantt.html">施工甘特圖</a>
+  <a href="pipe.html">冰水管管徑</a>
+  <a href="heatbalance.html" class="active">熱平衡計算</a>
+</nav>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">大群環控 · 現場工具</p>
+    <h1>冰水主機熱平衡計算</h1>
+    <p class="sub">依 AHRI 550/590 熱平衡判定原則：冷凝側放熱量 應約等於 蒸發側吸熱量＋壓縮機輸入功率，誤差容許 ±5%。</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card meta">
+    <h2><span class="num" style="background:#857d6c;">0</span>案場資訊（報告抬頭用）</h2>
+    <div class="row2">
+      <div class="field">
+        <label>案場 / 工程名稱</label>
+        <div class="inputrow"><input type="text" id="meta-site" placeholder="例如 台大兒童醫院"></div>
+      </div>
+      <div class="field">
+        <label>主機編號 / 型號</label>
+        <div class="inputrow"><input type="text" id="meta-unit" placeholder="例如 CH-1"></div>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>量測人員</label>
+        <div class="inputrow"><input type="text" id="meta-person" placeholder="姓名"></div>
+      </div>
+      <div class="field">
+        <label>量測日期</label>
+        <div class="inputrow"><input type="date" id="meta-date"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card evap">
+    <h2><span class="num">1</span>蒸發器側（冰水）</h2>
+    <p class="card-sub">回水溫度應高於出水溫度（冰水被冷卻）</p>
+    <div class="toggle" id="evap-unit-toggle">
+      <button data-u="CMH" class="active">CMH（m³/hr）</button>
+      <button data-u="LPM">LPM（L/min）</button>
+    </div>
+    <div class="field">
+      <label>冰水流量</label>
+      <div class="inputrow"><input type="number" id="evap-flow" inputmode="decimal" placeholder="例如 250"><span class="unit" id="evap-flow-unit">CMH</span></div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>回水溫度（入口）</label>
+        <div class="inputrow"><input type="number" id="evap-in" inputmode="decimal" placeholder="12.0"><span class="unit">°C</span></div>
+      </div>
+      <div class="field">
+        <label>出水溫度（出口）</label>
+        <div class="inputrow"><input type="number" id="evap-out" inputmode="decimal" placeholder="7.0"><span class="unit">°C</span></div>
+      </div>
+    </div>
+    <div class="deltaT">ΔT(冰水) = <b id="evap-dt">--</b> °C</div>
+    <div class="formula" id="evap-formula">
+      <span class="fname">蒸發吸熱量公式</span>
+      Q評估 = 1.163 × 流量(CMH) × ΔT
+    </div>
+  </div>
+
+  <div class="card cond">
+    <h2><span class="num">2</span>冷凝器側（冷卻水）</h2>
+    <p class="card-sub">出水溫度應高於入水溫度（冷卻水被加熱後送往冷卻水塔）</p>
+    <div class="toggle" id="cond-unit-toggle">
+      <button data-u="CMH" class="active">CMH（m³/hr）</button>
+      <button data-u="LPM">LPM（L/min）</button>
+    </div>
+    <div class="field">
+      <label>冷卻水流量</label>
+      <div class="inputrow"><input type="number" id="cond-flow" inputmode="decimal" placeholder="例如 300"><span class="unit" id="cond-flow-unit">CMH</span></div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>入水溫度（入口）</label>
+        <div class="inputrow"><input type="number" id="cond-in" inputmode="decimal" placeholder="32.0"><span class="unit">°C</span></div>
+      </div>
+      <div class="field">
+        <label>出水溫度（出口）</label>
+        <div class="inputrow"><input type="number" id="cond-out" inputmode="decimal" placeholder="37.0"><span class="unit">°C</span></div>
+      </div>
+    </div>
+    <div class="deltaT">ΔT(冷卻水) = <b id="cond-dt">--</b> °C</div>
+    <div class="formula" id="cond-formula">
+      <span class="fname">冷凝放熱量公式</span>
+      Q冷凝 = 1.163 × 流量(CMH) × ΔT
+    </div>
+  </div>
+
+  <div class="card power">
+    <h2><span class="num">3</span>壓縮機輸入功率</h2>
+    <p class="card-sub">電錶量測之馬達輸入功率（kW）。多顆壓縮機可逐一新增加總。</p>
+    <div id="power-rows">
+      <div class="prow">
+        <div class="inputrow" style="flex:1;">
+          <input type="number" class="p-input" inputmode="decimal" placeholder="例如 85.0">
+        </div>
+        <span class="unit" style="position:static;">kW</span>
+        <button class="rm" onclick="removeRow(this)" style="visibility:hidden;">−</button>
+      </div>
+    </div>
+    <button class="addbtn" id="add-power-row">＋ 新增壓縮機</button>
+    <div class="ptotal" id="power-total">壓縮機總功率：-- kW</div>
+  </div>
+
+  <div id="result-area"></div>
+
+  <p class="note">
+    計算式：Q(kW) = 1.163 × 流量(CMH) × ΔT(°C)，取水之比熱 4.186 kJ/kg·K、密度 1000 kg/m³（LPM 模式會先換算成 CMH 再計算）。<br>
+    熱平衡誤差% = （冷凝放熱量 − (蒸發吸熱量＋壓縮機輸入功率)）÷ (蒸發吸熱量＋壓縮機輸入功率) × 100%<br>
+    AHRI 550/590 判定基準：|誤差| ≤ 5% 視為合格。此公式假設壓縮機馬達熱損全數進入冷媒側（半密閉/全密閉式機型適用；開放式機型應扣除馬達散逸熱損後再代入）。
+  </p>
+
+</div>
+
+<script>
+const CP_FACTOR = 1.163; // kW = CMH * dT * 1.163  (water, cp=4.186 kJ/kgK, rho=1000kg/m3)
+const RT_KW = 3.517; // 1 USRT = 3.517 kW
+let lastResult = null;
+
+let evapUnit = 'CMH';
+let condUnit = 'CMH';
+
+function setupToggle(id, varSetter, unitLabelId){
+  const el = document.getElementById(id);
+  el.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      el.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      varSetter(btn.dataset.u);
+      document.getElementById(unitLabelId).textContent = btn.dataset.u;
+      compute();
+    });
+  });
+}
+setupToggle('evap-unit-toggle', u=>evapUnit=u, 'evap-flow-unit');
+setupToggle('cond-unit-toggle', u=>condUnit=u, 'cond-flow-unit');
+
+function toCMH(flow, unit){
+  if(unit==='LPM') return flow * 60 / 1000; // L/min -> m3/hr
+  return flow; // already CMH
+}
+
+document.getElementById('add-power-row').addEventListener('click', ()=>{
+  const rows = document.getElementById('power-rows');
+  const div = document.createElement('div');
+  div.className='prow';
+  div.innerHTML = `
+    <div class="inputrow" style="flex:1;"><input type="number" class="p-input" inputmode="decimal" placeholder="kW"></div>
+    <span class="unit" style="position:static;">kW</span>
+    <button class="rm" onclick="removeRow(this)">−</button>`;
+  rows.appendChild(div);
+  div.querySelector('input').addEventListener('input', compute);
+  syncRemoveVisibility();
+  compute();
+});
+
+function removeRow(btn){
+  btn.closest('.prow').remove();
+  syncRemoveVisibility();
+  compute();
+}
+
+function syncRemoveVisibility(){
+  const rows = document.querySelectorAll('#power-rows .prow');
+  rows.forEach(r=>{
+    r.querySelector('.rm').style.visibility = rows.length>1 ? 'visible' : 'hidden';
+  });
+}
+
+['evap-flow','evap-in','evap-out','cond-flow','cond-in','cond-out'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', compute);
+});
+document.querySelector('.p-input').addEventListener('input', compute);
+
+function num(id){
+  const v = parseFloat(document.getElementById(id).value);
+  return isNaN(v) ? null : v;
+}
+
+function compute(){
+  const evapFlow = num('evap-flow');
+  const evapIn = num('evap-in');
+  const evapOut = num('evap-out');
+  const condFlow = num('cond-flow');
+  const condIn = num('cond-in');
+  const condOut = num('cond-out');
+
+  const powerInputs = Array.from(document.querySelectorAll('.p-input')).map(i=>parseFloat(i.value)).filter(v=>!isNaN(v));
+  const totalPower = powerInputs.reduce((a,b)=>a+b,0);
+  document.getElementById('power-total').textContent = `壓縮機總功率：${powerInputs.length? totalPower.toFixed(1):'--'} kW`;
+
+  const evapDt = (evapIn!=null && evapOut!=null) ? evapIn-evapOut : null;
+  const condDt = (condIn!=null && condOut!=null) ? condOut-condIn : null;
+  document.getElementById('evap-dt').textContent = evapDt!=null ? evapDt.toFixed(1) : '--';
+  document.getElementById('cond-dt').textContent = condDt!=null ? condDt.toFixed(1) : '--';
+
+  const evapFlowCMHLive = evapFlow!=null ? toCMH(evapFlow, evapUnit) : null;
+  const condFlowCMHLive = condFlow!=null ? toCMH(condFlow, condUnit) : null;
+  document.getElementById('evap-formula').innerHTML = `<span class="fname">蒸發吸熱量公式</span>Q評估 = 1.163 × ${evapFlowCMHLive!=null? evapFlowCMHLive.toFixed(1):'流量(CMH)'} × ${evapDt!=null? evapDt.toFixed(1):'ΔT'}${(evapFlowCMHLive!=null&&evapDt!=null)? ' = <b>'+(CP_FACTOR*evapFlowCMHLive*evapDt).toFixed(1)+' kW</b>':''}`;
+  document.getElementById('cond-formula').innerHTML = `<span class="fname">冷凝放熱量公式</span>Q冷凝 = 1.163 × ${condFlowCMHLive!=null? condFlowCMHLive.toFixed(1):'流量(CMH)'} × ${condDt!=null? condDt.toFixed(1):'ΔT'}${(condFlowCMHLive!=null&&condDt!=null)? ' = <b>'+(CP_FACTOR*condFlowCMHLive*condDt).toFixed(1)+' kW</b>':''}`;
+
+  const area = document.getElementById('result-area');
+
+  const ready = evapFlow!=null && evapDt!=null && condFlow!=null && condDt!=null && powerInputs.length>0;
+  if(!ready){
+    area.innerHTML = `<div class="card"><div class="placeholder">輸入蒸發器、冷凝器流量與溫度、壓縮機功率後，自動計算熱平衡誤差</div></div>`;
+    lastResult = null;
+    return;
+  }
+
+  if(evapDt<=0 || condDt<=0){
+    area.innerHTML = `<div class="card">
+      <div class="result-main" style="background:var(--warn);">
+        <div class="label">溫度輸入異常</div>
+        <div style="font-size:14px;line-height:1.6;">蒸發器側 ΔT 或冷凝器側 ΔT 為零或負值，請確認入水/出水溫度是否量反了。</div>
+      </div>
+    </div>`;
+    lastResult = null;
+    return;
+  }
+
+  const evapFlowCMH = toCMH(evapFlow, evapUnit);
+  const condFlowCMH = toCMH(condFlow, condUnit);
+
+  const Qevap = CP_FACTOR * evapFlowCMH * evapDt;
+  const Qcond = CP_FACTOR * condFlowCMH * condDt;
+  const expected = Qevap + totalPower;
+  const errorPct = ((Qcond - expected) / expected) * 100;
+
+  const isGood = Math.abs(errorPct) <= 5;
+  const confClass = isGood ? 'good':'warn';
+  const confText = isGood ? 'AHRI 550/590 合格（≤5%）' : '超出 ±5% · 建議複測';
+
+  area.innerHTML = `
+    <div class="card" style="border-color:${isGood?'#9fc7ab':'#d9a98c'};">
+      <div class="result-main">
+        <div class="balance-num">
+          <div class="label">熱平衡誤差</div>
+          <div class="pct">${errorPct>0?'+':''}${errorPct.toFixed(2)}%</div>
+          <div class="confidence ${confClass}">${confText}</div>
+        </div>
+        <div class="breakdown">
+          <div class="bitem">
+            <div class="t">蒸發吸熱量</div>
+            <div class="v">${Qevap.toFixed(1)}</div>
+            <div class="v2">kW · ${(Qevap/RT_KW).toFixed(1)} RT</div>
+          </div>
+          <div class="bitem">
+            <div class="t">冷凝放熱量</div>
+            <div class="v">${Qcond.toFixed(1)}</div>
+            <div class="v2">kW · ${(Qcond/RT_KW).toFixed(1)} RT</div>
+          </div>
+          <div class="bitem">
+            <div class="t">理論冷凝量</div>
+            <div class="v">${expected.toFixed(1)}</div>
+            <div class="v2">蒸發+壓縮機 kW</div>
+          </div>
+        </div>
+        <div class="formula on-dark" style="margin-top:14px;margin-bottom:0;">
+          <span class="fname">熱平衡誤差公式（帶入實際數值）</span>
+          Q評估 = 1.163 × ${evapFlowCMH.toFixed(1)} × ${evapDt.toFixed(1)} = <b>${Qevap.toFixed(1)} kW</b><br>
+          Q冷凝 = 1.163 × ${condFlowCMH.toFixed(1)} × ${condDt.toFixed(1)} = <b>${Qcond.toFixed(1)} kW</b><br>
+          理論冷凝量 = ${Qevap.toFixed(1)} + ${totalPower.toFixed(1)} = <b>${expected.toFixed(1)} kW</b><br>
+          誤差% = (${Qcond.toFixed(1)} − ${expected.toFixed(1)}) ÷ ${expected.toFixed(1)} × 100 = <b>${errorPct>0?'+':''}${errorPct.toFixed(2)}%</b>
+        </div>
+      </div>
+      ${!isGood ? `<p class="note" style="color:var(--warn);border-top:none;margin-top:14px;padding-top:0;">誤差超出範圍，常見原因：流量計未校正或讀數單位看錯、溫度感測器精度不足、量測時系統未達穩態（負載/流量持續變動）、壓縮機功率含或未含油泵等附屬負載。建議待系統穩定運轉至少 15-20 分鐘後重新讀值。</p>` : ''}
+    </div>
+    <button class="exportbtn" id="export-btn">📄　匯出 PDF 報表</button>
+  `;
+
+  lastResult = {
+    evapFlow, evapUnit, evapFlowCMH, evapIn, evapOut, evapDt, Qevap,
+    condFlow, condUnit, condFlowCMH, condIn, condOut, condDt, Qcond,
+    powerInputs, totalPower, expected, errorPct, isGood
+  };
+  document.getElementById('export-btn').addEventListener('click', exportPDF);
+}
+
+function exportPDF(){
+  if(!lastResult) return;
+  const r = lastResult;
+  const site = document.getElementById('meta-site').value || '（未填寫）';
+  const unit = document.getElementById('meta-unit').value || '（未填寫）';
+  const person = document.getElementById('meta-person').value || '（未填寫）';
+  const dateVal = document.getElementById('meta-date').value;
+  const dateStr = dateVal ? dateVal : new Date().toISOString().slice(0,10);
+
+  const powerRows = r.powerInputs.map((p,i)=>`<tr><td>壓縮機 #${i+1}</td><td>${p.toFixed(1)} kW</td></tr>`).join('');
+
+  const verdict = r.isGood
+    ? `<span style="color:#2f6b3f;font-weight:700;">合格（|誤差| ≤ 5%，符合 AHRI 550/590）</span>`
+    : `<span style="color:#a4451f;font-weight:700;">不合格（|誤差| &gt; 5%，建議複測）</span>`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="UTF-8"><title>冰水主機熱平衡報告 - ${site}</title>
+<style>
+  *{box-sizing:border-box;}
+  body{font-family:"PingFang TC","Noto Sans TC",sans-serif;color:#1c2422;padding:28px 36px;font-size:13px;line-height:1.6;}
+  h1{font-size:19px;margin:0 0 2px;}
+  .sub{font-size:11px;color:#777;margin:0 0 18px;}
+  table{width:100%;border-collapse:collapse;margin-bottom:16px;}
+  th,td{border:1px solid #ccc;padding:6px 9px;text-align:left;font-size:12.5px;}
+  th{background:#eee;width:140px;font-weight:700;}
+  h2{font-size:13.5px;border-left:4px solid #26404e;padding-left:8px;margin:22px 0 8px;}
+  .formula-box{background:#f4f1e8;border:1px solid #ccc;border-radius:6px;padding:10px 12px;font-family:Menlo,Consolas,monospace;font-size:12px;line-height:1.9;}
+  .result-box{border:2px solid ${r.isGood?'#3d6b4f':'#a4451f'};border-radius:8px;padding:14px 16px;margin-top:10px;text-align:center;}
+  .result-box .big{font-size:30px;font-weight:800;color:${r.isGood?'#2f6b3f':'#a4451f'};}
+  .sign{display:flex;gap:40px;margin-top:36px;}
+  .sign div{flex:1;border-top:1px solid #999;padding-top:6px;font-size:12px;color:#555;}
+  footer{margin-top:30px;font-size:10.5px;color:#999;}
+  @media print{ body{padding:14mm 16mm;} }
+</style>
+</head>
+<body>
+  <h1>冰水主機熱平衡測試報告</h1>
+  <p class="sub">大群環控系統股份有限公司 · 依 AHRI 550/590 熱平衡判定原則</p>
+
+  <table>
+    <tr><th>案場 / 工程名稱</th><td>${site}</td><th>主機編號 / 型號</th><td>${unit}</td></tr>
+    <tr><th>量測人員</th><td>${person}</td><th>量測日期</th><td>${dateStr}</td></tr>
+  </table>
+
+  <h2>一、量測讀數</h2>
+  <table>
+    <tr><th colspan="2">蒸發器側（冰水）</th></tr>
+    <tr><th>流量</th><td>${r.evapFlow.toFixed(1)} ${r.evapUnit}${r.evapUnit==='LPM' ? `　（換算 ${r.evapFlowCMH.toFixed(1)} CMH）`:''}</td></tr>
+    <tr><th>回水溫度（入口）</th><td>${r.evapIn.toFixed(1)} °C</td></tr>
+    <tr><th>出水溫度（出口）</th><td>${r.evapOut.toFixed(1)} °C</td></tr>
+    <tr><th>ΔT</th><td>${r.evapDt.toFixed(1)} °C</td></tr>
+  </table>
+  <table>
+    <tr><th colspan="2">冷凝器側（冷卻水）</th></tr>
+    <tr><th>流量</th><td>${r.condFlow.toFixed(1)} ${r.condUnit}${r.condUnit==='LPM' ? `　（換算 ${r.condFlowCMH.toFixed(1)} CMH）`:''}</td></tr>
+    <tr><th>入水溫度（入口）</th><td>${r.condIn.toFixed(1)} °C</td></tr>
+    <tr><th>出水溫度（出口）</th><td>${r.condOut.toFixed(1)} °C</td></tr>
+    <tr><th>ΔT</th><td>${r.condDt.toFixed(1)} °C</td></tr>
+  </table>
+  <table>
+    <tr><th colspan="2">壓縮機輸入功率</th></tr>
+    ${powerRows}
+    <tr><th>總計</th><td><b>${r.totalPower.toFixed(1)} kW</b></td></tr>
+  </table>
+
+  <h2>二、計算過程</h2>
+  <div class="formula-box">
+    係數說明：Q(kW) = 流量(CMH) × 密度(1000kg/m³) × 比熱(4.186kJ/kg·K) × ΔT ÷ 3600 = 流量 × ΔT × <b>1.163</b><br><br>
+    Q評估 = 1.163 × ${r.evapFlowCMH.toFixed(1)} × ${r.evapDt.toFixed(1)} = <b>${r.Qevap.toFixed(1)} kW</b>（${(r.Qevap/RT_KW).toFixed(1)} RT）<br>
+    Q冷凝 = 1.163 × ${r.condFlowCMH.toFixed(1)} × ${r.condDt.toFixed(1)} = <b>${r.Qcond.toFixed(1)} kW</b>（${(r.Qcond/RT_KW).toFixed(1)} RT）<br>
+    理論冷凝量 = Q評估 + 壓縮機總功率 = ${r.Qevap.toFixed(1)} + ${r.totalPower.toFixed(1)} = <b>${r.expected.toFixed(1)} kW</b><br>
+    熱平衡誤差% = (Q冷凝 − 理論冷凝量) ÷ 理論冷凝量 × 100<br>
+    = (${r.Qcond.toFixed(1)} − ${r.expected.toFixed(1)}) ÷ ${r.expected.toFixed(1)} × 100 = <b>${r.errorPct>0?'+':''}${r.errorPct.toFixed(2)}%</b>
+  </div>
+
+  <h2>三、判定結果</h2>
+  <div class="result-box">
+    <div class="big">${r.errorPct>0?'+':''}${r.errorPct.toFixed(2)}%</div>
+    <div style="margin-top:6px;">${verdict}</div>
+  </div>
+
+  <div class="sign">
+    <div>量測人員簽名</div>
+    <div>主管 / 監造複核簽名</div>
+  </div>
+
+  <footer>本報告由「冰水主機熱平衡計算工具」自動產生 · 計算基準：水比熱 4.186 kJ/kg·K、密度 1000 kg/m³ · 適用半密閉/全密閉式壓縮機機型</footer>
+
+  <script>window.onload = function(){ window.print(); };<\/script>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  if(!win){
+    alert('請允許瀏覽器彈出視窗以產生PDF報告');
+    return;
+  }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+}
+
+syncRemoveVisibility();
+document.getElementById('meta-date').value = new Date().toISOString().slice(0,10);
+compute();
+</script>
+
+</body>
+</html>
