@@ -270,6 +270,16 @@
     color:#9a9384;
     font-size:13px;
   }
+
+  /* 剖面示意圖 */
+  #pipe-diagram svg{width:100%;height:auto;display:block;max-width:380px;margin:0 auto;}
+  .diag-legend{
+    display:flex;flex-wrap:wrap;gap:7px 16px;justify-content:center;
+    margin-top:12px;font-size:12px;font-family:var(--mono);
+  }
+  .diag-legend span{display:flex;align-items:center;gap:6px;color:#5c564a;}
+  .diag-legend b{color:var(--steel-dark);font-weight:700;}
+  .diag-legend i{width:12px;height:12px;border-radius:3px;display:inline-block;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -293,7 +303,13 @@
 <div class="wrap">
 
   <div class="card">
-    <h2><span class="num">1</span>量測方式</h2>
+    <h2><span class="num">1</span>保溫狀態</h2>
+    <div class="toggle" id="insul-toggle">
+      <button id="ins-yes" class="active">有保溫</button>
+      <button id="ins-no">沒有保溫</button>
+    </div>
+
+    <h2 style="margin-top:18px;"><span class="num">2</span>量測方式</h2>
     <div class="toggle">
       <button id="mode-od" class="active">直接量外徑</button>
       <button id="mode-circ">繞量周長</button>
@@ -301,7 +317,7 @@
 
     <div id="input-od">
       <div class="field">
-        <label>含保溫外徑（卡尺量測）</label>
+        <label id="label-od">含保溫外徑（卡尺量測）</label>
         <div class="inputrow">
           <input type="number" id="od-total" inputmode="decimal" placeholder="例如 89">
           <span class="unit">mm</span>
@@ -311,7 +327,7 @@
 
     <div id="input-circ" style="display:none;">
       <div class="field">
-        <label>含保溫周長（布尺繞一圈）</label>
+        <label id="label-circ">含保溫周長（布尺繞一圈）</label>
         <div class="inputrow">
           <input type="number" id="circ-total" inputmode="decimal" placeholder="例如 280">
           <span class="unit">mm</span>
@@ -320,7 +336,7 @@
       </div>
     </div>
 
-    <div class="field" style="margin-top:16px;">
+    <div class="field" id="insul-field" style="margin-top:16px;">
       <label>保溫厚度（含外層鋁皮/PVC）</label>
       <div class="inputrow">
         <input type="number" id="insul" inputmode="decimal" placeholder="例如 25">
@@ -328,6 +344,11 @@
       </div>
       <p class="hint">量測保溫材的徑向厚度，不是周長差。常見厚度：25mm、38mm、50mm 等。</p>
     </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">◎</span>管路剖面示意圖</h2>
+    <div id="pipe-diagram"></div>
   </div>
 
   <div id="result-area"></div>
@@ -399,12 +420,27 @@ modeCircBtn.addEventListener('click', ()=>{
   compute();
 });
 
+// 保溫狀態切換
+const insYesBtn = document.getElementById('ins-yes');
+const insNoBtn = document.getElementById('ins-no');
+let hasInsul = true;
+
+function applyInsulMode(){
+  insYesBtn.classList.toggle('active', hasInsul);
+  insNoBtn.classList.toggle('active', !hasInsul);
+  document.getElementById('insul-field').style.display = hasInsul ? '' : 'none';
+  document.getElementById('label-od').textContent   = hasInsul ? '含保溫外徑（卡尺量測）' : '鋼管外徑（直接量測）';
+  document.getElementById('label-circ').textContent = hasInsul ? '含保溫周長（布尺繞一圈）' : '鋼管周長（布尺繞一圈）';
+}
+insYesBtn.addEventListener('click', ()=>{ hasInsul=true;  applyInsulMode(); compute(); });
+insNoBtn.addEventListener('click',  ()=>{ hasInsul=false; applyInsulMode(); compute(); });
+
 ['od-total','circ-total','insul'].forEach(id=>{
   document.getElementById(id).addEventListener('input', compute);
 });
 
 function compute(){
-  const insul = parseFloat(document.getElementById('insul').value);
+  const insul = hasInsul ? parseFloat(document.getElementById('insul').value) : 0;
   let totalOd;
   if(mode==='od'){
     totalOd = parseFloat(document.getElementById('od-total').value);
@@ -416,7 +452,9 @@ function compute(){
   const area = document.getElementById('result-area');
   document.querySelectorAll('#ref-table tr').forEach(tr=>tr.classList.remove('hl'));
 
-  if(isNaN(totalOd) || isNaN(insul) || totalOd<=0 || insul<0){
+  const insulInvalid = hasInsul && (isNaN(insul) || insul<0);
+  if(isNaN(totalOd) || insulInvalid || totalOd<=0){
+    drawDiagram(NaN, 0, NaN);   // 顯示示意骨架
     area.innerHTML = `<div class="card"><div class="placeholder">輸入量測數值後，會自動顯示對應的鋼管吋數與 DN</div></div>`;
     return;
   }
@@ -424,6 +462,7 @@ function compute(){
   const pipeOd = totalOd - 2*insul;
 
   if(pipeOd <= 0){
+    drawDiagram(totalOd, insul, NaN);
     area.innerHTML = `<div class="card">
       <div class="result-main" style="background:var(--warn);">
         <div class="label">計算異常</div>
@@ -432,6 +471,8 @@ function compute(){
     </div>`;
     return;
   }
+
+  drawDiagram(totalOd, insul, pipeOd);
 
   // find best match + nearest two for reference
   let sorted = PIPE_TABLE.map(p=>({...p, diff: Math.abs(p.od - pipeOd)})).sort((a,b)=>a.diff-b.diff);
@@ -461,7 +502,9 @@ function compute(){
       <div class="result-main">
         <div class="label">反推鋼管管徑</div>
         <div class="pipe">${best.inch}<span class="dn">${best.dn} · 標準外徑 ${best.od.toFixed(1)} mm</span></div>
-        <div class="calc-od">量測反推外徑 ≈ ${pipeOd.toFixed(1)} mm（總外徑 ${totalOd.toFixed(1)} − 保溫×2 ${(insul*2).toFixed(1)}）</div>
+        <div class="calc-od">${hasInsul
+          ? `量測反推外徑 ≈ ${pipeOd.toFixed(1)} mm（總外徑 ${totalOd.toFixed(1)} − 保溫×2 ${(insul*2).toFixed(1)}）`
+          : `量測鋼管外徑 ≈ ${pipeOd.toFixed(1)} mm（無保溫，直接量測）`}</div>
         <div class="confidence ${confClass}">${confText} · 差異 ${best.diff.toFixed(1)}mm</div>
       </div>
       <div class="candidates">${candHtml}</div>
@@ -470,6 +513,77 @@ function compute(){
   `;
 }
 
+/* ===================== 剖面示意圖 ===================== */
+function drawDiagram(totalOd, insul, pipeOd){
+  const box = document.getElementById('pipe-diagram');
+  const W=340, H=250, cx=140, cy=120;
+  const Rout=84;                          // 外圈顯示半徑（固定）
+  const valid = !isNaN(totalOd) && totalOd>0;
+  const hasIns = hasInsul && insul>0;
+  // 內圈（鋼管）顯示半徑：依實際比例，夾在可視範圍內
+  let ratio = (valid && hasIns && !isNaN(pipeOd) && pipeOd>0) ? pipeOd/totalOd : 1;
+  if(hasIns) ratio = Math.max(0.34, Math.min(0.84, ratio));   // 保留可見環寬（示意）
+  const Rin = hasIns ? Rout*ratio : Rout;
+
+  const steel='#3a5a6c', steelDark='#26404e', insFill='#e7c9a9', insStroke='#c99a6a', line='#4a4438';
+  // 箭頭標記
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="'SF Mono',Menlo,Consolas,monospace">
+    <defs>
+      <marker id="ah" markerWidth="7" markerHeight="7" refX="5.5" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="${line}"/></marker>
+      <marker id="ah2" markerWidth="7" markerHeight="7" refX="5.5" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#fff"/></marker>
+      <pattern id="hatch" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+        <rect width="7" height="7" fill="${insFill}"/>
+        <line x1="0" y1="0" x2="0" y2="7" stroke="${insStroke}" stroke-width="1.4"/>
+      </pattern>
+    </defs>`;
+
+  // 周長虛線（外緣）
+  s+=`<circle cx="${cx}" cy="${cy}" r="${Rout+7}" fill="none" stroke="#b9b0a0" stroke-width="1" stroke-dasharray="3 4"/>`;
+
+  // 保溫環
+  if(hasIns){
+    s+=`<circle cx="${cx}" cy="${cy}" r="${Rout}" fill="url(#hatch)" stroke="${insStroke}" stroke-width="1.5"/>`;
+  }
+  // 鋼管
+  s+=`<circle cx="${cx}" cy="${cy}" r="${Rin}" fill="${steel}" stroke="${steelDark}" stroke-width="1.5"/>`;
+  // 鋼管中空示意（內壁）
+  s+=`<circle cx="${cx}" cy="${cy}" r="${Rin*0.62}" fill="#fffdf8" stroke="${steelDark}" stroke-width="1"/>`;
+
+  // 直徑標註（穿過鋼管，橫線雙箭頭 + 中央白底徽章）
+  s+=`<line x1="${cx-Rin}" y1="${cy}" x2="${cx+Rin}" y2="${cy}"
+        stroke="#fff" stroke-width="1.6" marker-start="url(#ah2)" marker-end="url(#ah2)"/>`;
+  const odTxt = (valid && !isNaN(pipeOd) && pipeOd>0) ? '⌀ '+pipeOd.toFixed(1)+' mm' : '⌀ 鋼管外徑';
+  const obw = odTxt.length*6.6+12;
+  s+=`<rect x="${cx-obw/2}" y="${cy-9}" width="${obw}" height="18" rx="4" fill="#fff" stroke="${steelDark}" stroke-width="1.2"/>`;
+  s+=`<text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="11.5" fill="${steelDark}" font-weight="700">${odTxt}</text>`;
+
+  // 保溫厚度標註（頂部 12 點鐘，徑向雙箭頭）
+  if(hasIns){
+    s+=`<line x1="${cx+Rout*0.0}" y1="${cy-Rin}" x2="${cx}" y2="${cy-Rout}"
+          stroke="${line}" stroke-width="1.4" marker-start="url(#ah)" marker-end="url(#ah)"/>`;
+    const tTxt = insul.toFixed(0)+'mm';
+    s+=`<rect x="${cx+6}" y="${cy-Rout-2}" width="${tTxt.length*7+10}" height="16" rx="3" fill="#fff" stroke="${insStroke}"/>`;
+    s+=`<text x="${cx+11}" y="${cy-Rout+10}" font-size="11" fill="${insStroke}" font-weight="700">${tTxt}</text>`;
+  }
+
+  s+=`</svg>`;
+
+  // 圖例（放在 SVG 下方，用 HTML 呈現數值，較清楚）
+  let legend = `<div class="diag-legend">`;
+  legend += `<span><i style="background:${steel}"></i>鋼管外徑 <b>${(valid&&!isNaN(pipeOd)&&pipeOd>0)?pipeOd.toFixed(1):'—'} mm</b></span>`;
+  if(hasIns){
+    legend += `<span><i style="background:repeating-linear-gradient(45deg,${insFill},${insFill} 3px,${insStroke} 3px,${insStroke} 4px);border:1px solid ${insStroke}"></i>保溫厚度 <b>${insul.toFixed(0)} mm</b></span>`;
+    legend += `<span><i style="background:#fff;border:1px dashed #b9b0a0"></i>總外徑 <b>${valid?totalOd.toFixed(1):'—'} mm</b></span>`;
+  }
+  legend += `<span>⟳ ${hasIns?'外緣':'鋼管'}周長 <b>${valid?(totalOd*Math.PI).toFixed(0):'—'} mm</b></span>`;
+  legend += `</div>`;
+
+  box.innerHTML = s + legend;
+}
+
+applyInsulMode();
 compute();
 </script>
 
