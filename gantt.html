@@ -114,6 +114,7 @@ svg{display:block;font-family:inherit}
       <button class="btn" id="btnToggleAmt">隱藏金額</button>
       <button class="btn" id="btnToggleWt">隱藏權重</button>
       <button class="btn" id="btnToggleProg">隱藏進度線</button>
+      <button class="btn" id="btnToggleToday">隱藏今日線</button>
       <label style="font-size:13px;color:var(--muted)">刻度
         <select id="zoomSel" style="padding:4px 6px;border:1px solid var(--line);border-radius:5px">
           <option value="day">日</option><option value="week">週</option>
@@ -353,6 +354,25 @@ function renderTable(){
   });
 }
 function esc(s){ return String(s==null?'':s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+// 依欄寬把文字折成最多 maxLines 行（CJK 全形、ASCII 半形估寬），超出以 … 收尾
+function wrapText(str, fontSize, maxW, maxLines){
+  str=String(str==null?'':str);
+  const cw=ch=>(ch.charCodeAt(0)>255?fontSize:fontSize*0.56);
+  const lines=[]; let cur='', w=0;
+  for(let i=0;i<str.length;i++){
+    const ch=str[i], c=cw(ch);
+    if(w+c>maxW && cur!==''){
+      if(lines.length===maxLines-1){           // 已是最後一行 → 需要時截斷加 …
+        let rest=str.slice(i), rw=w, out=cur;
+        for(let k=0;k<rest.length;k++){ const c2=cw(rest[k]); if(rw+c2>maxW){ out=out.replace(/.$/,'…'); rest=''; break; } out+=rest[k]; rw+=c2; }
+        cur=out; w=rw; break;
+      }
+      lines.push(cur); cur=ch; w=c;
+    } else { cur+=ch; w+=c; }
+  }
+  if(cur!=='') lines.push(cur);
+  return lines.length?lines:[''];
+}
 
 /* ===================== 渲染：甘特 SVG(畫面互動版) ===================== */
 const ROWH=26, HEADH=54, FOOTH=98, PADL=8, PADR=64;
@@ -437,7 +457,7 @@ function svgHeader(cv,bodyH){
   let s=buildTimeHeader(cv, DX);
   // 今日線(表頭)
   const ti=todayIdx(cv);
-  if(ti>=0&&ti<=cv.ndays){ const tx=xOf(ti);
+  if(!state.hideToday && ti>=0&&ti<=cv.ndays){ const tx=xOf(ti);
     s+=`<line x1="${tx}" y1="0" x2="${tx}" y2="${HEADH}" stroke="#e8590c" stroke-width="1.5"/>`;
     s+=`<rect x="${tx-16}" y="0" width="32" height="11" rx="2" fill="#e8590c"/>`;
     s+=`<text x="${tx}" y="9" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">今日</text>`;
@@ -500,7 +520,7 @@ function svgBody(d,cv,bodyH){
   }
   }
   // #6 今日線(主體,畫在長條與曲線之上)
-  if(_ti>=0&&_ti<=cv.ndays){ const tx=xOf(_ti);
+  if(!state.hideToday && _ti>=0&&_ti<=cv.ndays){ const tx=xOf(_ti);
     s+=`<line x1="${tx}" y1="0" x2="${tx}" y2="${bodyH}" stroke="#e8590c" stroke-width="1.5" stroke-dasharray="4 3"/>`; }
   // 下方每週 % 列(僅日/週檢視,其餘刻度太密改只留曲線)
   if(!state.hideProgress && (state.zoom==='day'||state.zoom==='week'||!state.zoom)){
@@ -661,9 +681,17 @@ function buildPrintSVG(){
     cols.forEach(c=>{
       let v=valOf[c.k];
       const tx=c.align==='start'?xx+4:(c.align==='end'?xx+c.w-4:xx+c.w/2);
-      let fs=10;
-      if(c.k==='name'){ const L=v.length; fs = L>22?8 : (L>18?8.8 : (L>15?9.4:10)); if(L>30) v=v.slice(0,30); }
-      s+=`<text x="${tx}" y="${y+rowH/2+3.5}" text-anchor="${c.align}" font-size="${fs}" font-weight="${parent?700:400}" fill="${parent&&c.k==='name'?'#2f3e4d':'#1d1d1a'}">${esc(v)}</text>`;
+      const fill=parent&&c.k==='name'?'#2f3e4d':'#1d1d1a';
+      if(c.k==='name'){
+        // 統一字級 9.5，過長自動換兩行（不再逐列縮小）
+        const NFS=9.5, lines=wrapText(v, NFS, c.w-8, 2), lh=11;
+        const y0=y+rowH/2 - (lines.length-1)*lh/2 + 3.5;
+        lines.forEach((ln,li)=>{
+          s+=`<text x="${tx}" y="${y0+li*lh}" text-anchor="start" font-size="${NFS}" font-weight="${parent?700:400}" fill="${fill}">${esc(ln)}</text>`;
+        });
+      } else {
+        s+=`<text x="${tx}" y="${y+rowH/2+3.5}" text-anchor="${c.align}" font-size="10" font-weight="${parent?700:400}" fill="${fill}">${esc(v)}</text>`;
+      }
       xx+=c.w;
     });
   });
@@ -718,7 +746,7 @@ function svgGutsP(d,cv,DXP,bodyH,rowH){
   if(hasA){ s+=`<polyline points="${apts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--actual)" stroke-width="1.8"/>`;
     apts.forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="2" fill="var(--actual)"/>`); }
   }
-  if(pti>=0&&pti<=cv.ndays){ const tx=xO(pti);
+  if(!state.hideToday && pti>=0&&pti<=cv.ndays){ const tx=xO(pti);
     s+=`<line x1="${tx}" y1="${bodyTop}" x2="${tx}" y2="${bodyTop+bodyH}" stroke="#e8590c" stroke-width="1.2" stroke-dasharray="4 3"/>`;
     s+=`<text x="${tx}" y="${bodyTop-2}" text-anchor="middle" font-size="8" fill="#e8590c" font-weight="700">今日</text>`; }
   if(!state.hideProgress && (state.zoom==='day'||state.zoom==='week'||!state.zoom)){
@@ -902,6 +930,7 @@ function renderAll(){
   document.getElementById('btnToggleAmt').textContent=state.hideAmount?'顯示金額':'隱藏金額';
   document.getElementById('btnToggleWt').textContent=state.hideWeight?'顯示權重':'隱藏權重';
   document.getElementById('btnToggleProg').textContent=state.hideProgress?'顯示進度線':'隱藏進度線';
+  document.getElementById('btnToggleToday').textContent=state.hideToday?'顯示今日線':'隱藏今日線';
   document.getElementById('zoomSel').value=state.zoom||'day';
   renderTable(); renderChart(); saveAutosave();
 }
@@ -912,6 +941,7 @@ document.getElementById('btnAddParent').addEventListener('click',addParent);
 document.getElementById('btnToggleAmt').addEventListener('click',()=>{ state.hideAmount=!state.hideAmount; renderAll(); });
 document.getElementById('btnToggleWt').addEventListener('click',()=>{ state.hideWeight=!state.hideWeight; renderAll(); });
 document.getElementById('btnToggleProg').addEventListener('click',()=>{ state.hideProgress=!state.hideProgress; renderAll(); });
+document.getElementById('btnToggleToday').addEventListener('click',()=>{ state.hideToday=!state.hideToday; renderAll(); });
 document.getElementById('zoomSel').addEventListener('change',e=>{ state.zoom=e.target.value; renderAll(); });
 /* 分隔棒:左右拖曳調整表格/圖表比例 */
 (function(){
