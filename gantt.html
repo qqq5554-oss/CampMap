@@ -824,6 +824,24 @@ function buildPrintSVG(){
     const col=li===1?'var(--planned)':(li===2?'var(--actual)':'var(--ink)');
     s+=`<text x="${tableW-6}" y="${fyT+19+li*30}" text-anchor="end" font-size="${fz(11)}" font-weight="600" fill="${col}">${lb}</text>`;
   });
+  // 圖例:填滿左下角空白(避開右對齊的三行 % 標籤)
+  if(!state.hideProgress && (state.zoom==='day'||state.zoom==='week'||!state.zoom)){
+    const lgX=2, lgY=fyT+3, lgW=Math.max(240, tableW-92), lgH=FOOTH-6;
+    s+=`<rect x="${lgX}" y="${lgY}" width="${lgW}" height="${lgH}" rx="3" fill="#fbfbf8" stroke="var(--line2)"/>`;
+    s+=`<text x="${lgX+8}" y="${lgY+15}" font-size="${fz(10)}" font-weight="700" fill="var(--ink)">圖　例</text>`;
+    const ly0=lgY+32, rh=19, c1=lgX+12, c2=lgX+12+Math.max(150,(lgW-24)*0.5);
+    const swBar=(x,y,c)=>`<rect x="${x}" y="${y-8}" width="20" height="10" rx="2.5" fill="${c}" stroke="#3a5670" stroke-width="0.6"/>`;
+    const swLine=(x,y,c,dash)=>`<line x1="${x}" y1="${y-4}" x2="${x+20}" y2="${y-4}" stroke="${c}" stroke-width="2.2" ${dash?'stroke-dasharray="4 3"':''}/><circle cx="${x+10}" cy="${y-4}" r="2.2" fill="${c}"/>`;
+    const tx=(x,y,t)=>`<text x="${x+27}" y="${y}" font-size="${fz(9)}" fill="var(--ink)">${t}</text>`;
+    // 左欄:長條類
+    s+=swBar(c1,ly0,'#2f3e4d')+tx(c1,ly0,'主要階段（大項）');
+    s+=swBar(c1,ly0+rh,'#5b7a99')+tx(c1,ly0+rh,'分項作業');
+    // 右欄:曲線/線類
+    let r=0;
+    s+=swLine(c2,ly0+rh*r,'var(--planned)',false)+tx(c2,ly0+rh*r,'累計預定進度'); r++;
+    s+=swLine(c2,ly0+rh*r,'var(--actual)',false)+tx(c2,ly0+rh*r,'累計實際進度'); r++;
+    if(!state.hideToday) s+=swLine(c2,ly0+rh*r,'#e8590c',true)+tx(c2,ly0+rh*r,'今日');
+  }
   // 甘特區(平移到表格右邊)
   s+=`<g transform="translate(${tableW+8},0)">${svgGutsP(d,gvp,PDX,bodyH,rowH)}</g>`;
   const title=esc(state.title);
